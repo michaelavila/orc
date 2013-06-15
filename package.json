@@ -1,0 +1,12 @@
+{
+  "name": "orchestrate",
+  "description": "A CoffeeScript library that allows you to write and maintain the asynchronous bits of your program naturally and effectively.",
+  "author": "Michael Avila <me at michaelavila.com>",
+  "dependencies": {
+    "coffee-script": "~1.6.3"
+  },
+  "devDependencies": {
+    "jasmine-node": "~1.8.1"
+  },
+  "engine": "node >= 0.8.21"
+}
