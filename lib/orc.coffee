@@ -1,19 +1,25 @@
 class Executor
     constructor: (@functions) ->
-        @waiting = false
+        @holds = 0
+
+    waiting: ->
+        @holds > 0
 
     wait: ->
-        @waiting = true
+        @holds++
 
     done: ->
-        @waiting = false
-        @readyCallback()
+        if not @waiting()
+            return
+        @holds--
+        if not @waiting()
+            @readyCallback()
 
     hasFunctions: ->
         @functions.length > 0
 
     canExecute: ->
-        @hasFunctions() and not @waiting
+        @hasFunctions() and not @waiting()
 
     executeNext: ->
         @functions.shift()()
@@ -51,7 +57,7 @@ class Orchestrator
                 executor = @currentExecutor()
                 executor.executeNext()
 
-                if executor.waiting and executor.hasFunctions()
+                if executor.waiting() and executor.hasFunctions()
                     executor.readyCallback = @execute
                 else if not executor.hasFunctions()
                     executorStack.pop()
@@ -61,4 +67,6 @@ class Orchestrator
                     break
         @currentExecutorStack = null
 
+module.exports.Orchestrator = Orchestrator
+module.exports.Executor = Executor
 module.exports.orc = new Orchestrator()

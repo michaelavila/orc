@@ -1,4 +1,31 @@
-orc = require('../lib/orc').orc
+orc_module = require('../lib/orc')
+orc = orc_module.orc
+
+describe 'Executor', ->
+    it 'can wait for many things', ->
+        executor = new orc_module.Executor()
+        executor.readyCallback = ->
+
+        executor.wait()
+        executor.wait()
+        expect(executor.waiting()).toBe true
+
+        executor.done()
+        expect(executor.waiting()).toBe true
+
+        executor.done()
+        expect(executor.waiting()).toBe false
+
+    it 'handles too many dones() gracefully', ->
+        executor = new orc_module.Executor()
+        executor.readyCallback = ->
+
+        executor.done()
+        executor.done()
+        expect(executor.waiting()).toBe false
+
+        executor.wait()
+        expect(executor.waiting()).toBe true
 
 describe 'Orchestrator', ->
     describe 'sequence', ->
