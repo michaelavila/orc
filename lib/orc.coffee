@@ -32,7 +32,7 @@ class Orchestrator
     wait: ->
         @currentExecutor().wait()
 
-    waitForCallback: (callback) ->
+    waitFor: (callback) ->
         @wait()
         executor = @currentExecutor()
         -> callback(); executor.done()

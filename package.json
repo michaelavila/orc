@@ -1,7 +1,7 @@
 {
   "name": "orc",
   "description": "A CoffeeScript library that allows you to write and maintain the asynchronous bits of your program naturally and effectively.",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "dependencies": {
     "coffee-script": "~1.6.1"
   },

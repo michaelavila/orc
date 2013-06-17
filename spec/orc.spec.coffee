@@ -28,11 +28,11 @@ describe 'Executor', ->
         expect(executor.waiting()).toBe true
 
 describe 'Orchestrator', ->
-    describe 'waitForCallback', ->
+    describe 'waitFor', ->
         log = ''
         orcCallback = null
 
-        orc.sequence (-> orcCallback = orc.waitForCallback(-> log += 'callback ')), (-> log += 'end of sequence')
+        orc.sequence (-> orcCallback = orc.waitFor(-> log += 'callback ')), (-> log += 'end of sequence')
         expect(log).toBe ''
 
         orcCallback()
