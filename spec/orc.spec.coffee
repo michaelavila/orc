@@ -29,14 +29,15 @@ describe 'Executor', ->
 
 describe 'Orchestrator', ->
     describe 'waitFor', ->
-        log = ''
-        orcCallback = null
+        it 'waits for callback to be called', ->
+            log = ''
+            orcCallback = null
 
-        orc.sequence (-> orcCallback = orc.waitFor(-> log += 'callback ')), (-> log += 'end of sequence')
-        expect(log).toBe ''
+            orc.sequence (-> orcCallback = orc.waitFor(-> log += 'callback ')), (-> log += 'end of sequence')
+            expect(log).toBe ''
 
-        orcCallback()
-        expect(log).toBe 'callback end of sequence'
+            orcCallback()
+            expect(log).toBe 'callback end of sequence'
 
     describe 'sequence', ->
         it 'works with non-async functions', ->
