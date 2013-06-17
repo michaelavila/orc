@@ -1,6 +1,7 @@
 {
-  "name": "orchestrate",
+  "name": "orc",
   "description": "A CoffeeScript library that allows you to write and maintain the asynchronous bits of your program naturally and effectively.",
+  "version": "0.0.1",
   "dependencies": {
     "coffee-script": "~1.6.3"
   },
@@ -10,5 +11,10 @@
   "engine": "node >= 0.8.21",
   "scripts": {
     "test": "jasmine-node --coffee spec"
-  }
+  },
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/michaelavila/orc.git"
+  },
+  "main": "./lib/orc"
 }
