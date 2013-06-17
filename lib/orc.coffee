@@ -18,9 +18,6 @@ class Executor
     hasFunctions: ->
         @functions.length > 0
 
-    canExecute: ->
-        @hasFunctions() and not @waiting()
-
     executeNext: ->
         @functions.shift()()
 
