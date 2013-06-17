@@ -3,7 +3,7 @@
   "description": "A CoffeeScript library that allows you to write and maintain the asynchronous bits of your program naturally and effectively.",
   "version": "0.0.1",
   "dependencies": {
-    "coffee-script": "~1.6.3"
+    "coffee-script": "~1.6.1"
   },
   "devDependencies": {
     "jasmine-node": "~1.8.1"
