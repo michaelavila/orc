@@ -104,3 +104,18 @@ describe 'Orchestrator', ->
 
             inner_executor.done()
             expect(log).toBe 'abbc'
+
+        it 'properly handles a sequence that ends waiting without functions', ->
+            log = ''
+
+            inner_executor = null
+            orc.sequence (->
+                inner_executor = orc.sequence (-> log += 'a'), (-> orc.wait())
+            ), (->
+                log += 'b'
+            )
+
+            expect(log).toBe 'a'
+
+            inner_executor.done()
+            expect(log).toBe 'ab'

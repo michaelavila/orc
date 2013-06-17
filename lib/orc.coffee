@@ -51,7 +51,7 @@ class Orchestrator
 
     canExecute: ->
         for executorStack in @executors
-            if executorStack.length > 0 and executorStack[executorStack.length-1].canExecute()
+            if executorStack.length > 0 and not executorStack[executorStack.length-1].waiting()
                 return true
         return false
 
@@ -60,11 +60,13 @@ class Orchestrator
             for executorStack in @executors
                 @currentExecutorStack = executorStack
                 executor = @currentExecutor()
-                executor.executeNext()
 
-                if executor.waiting() and executor.hasFunctions()
+                if executor.hasFunctions()
+                    executor.executeNext()
+
+                if executor.waiting()
                     executor.readyCallback = @execute
-                else if not executor.hasFunctions()
+                if not executor.waiting() and not executor.hasFunctions()
                     executorStack.pop()
 
                 if executorStack.length == 0
