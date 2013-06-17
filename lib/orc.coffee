@@ -35,6 +35,11 @@ class Orchestrator
     wait: ->
         @currentExecutor().wait()
 
+    waitForCallback: (callback) ->
+        @wait()
+        executor = @currentExecutor()
+        -> callback(); executor.done()
+
     sequence: (functions...) ->
         executor = new Executor functions
         if @currentExecutorStack?

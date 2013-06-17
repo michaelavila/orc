@@ -1,9 +1,9 @@
-orc_module = require('../lib/orc')
-orc = orc_module.orc
+orc = require('../lib/orc').orc
+Executor = require('../lib/orc').Executor
 
 describe 'Executor', ->
     it 'can wait for many things', ->
-        executor = new orc_module.Executor()
+        executor = new Executor()
         executor.readyCallback = ->
 
         executor.wait()
@@ -17,7 +17,7 @@ describe 'Executor', ->
         expect(executor.waiting()).toBe false
 
     it 'handles too many dones() gracefully', ->
-        executor = new orc_module.Executor()
+        executor = new Executor()
         executor.readyCallback = ->
 
         executor.done()
@@ -28,6 +28,15 @@ describe 'Executor', ->
         expect(executor.waiting()).toBe true
 
 describe 'Orchestrator', ->
+    describe 'waitForCallback', ->
+        log = ''
+        orcCallback = null
+
+        orc.sequence (-> orcCallback = orc.waitForCallback(-> log += 'callback ')), (-> log += 'end of sequence')
+        orcCallback()
+
+        expect(log).toBe 'callback end of sequence'
+
     describe 'sequence', ->
         it 'works with non-async functions', ->
             log = ''
