@@ -33,8 +33,9 @@ describe 'Orchestrator', ->
         orcCallback = null
 
         orc.sequence (-> orcCallback = orc.waitForCallback(-> log += 'callback ')), (-> log += 'end of sequence')
-        orcCallback()
+        expect(log).toBe ''
 
+        orcCallback()
         expect(log).toBe 'callback end of sequence'
 
     describe 'sequence', ->
