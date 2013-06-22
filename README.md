@@ -29,5 +29,5 @@ methods.
 
 So orc will, hopefully, help you:
 
-a. clearly and concisely express asynchronous flow control
-b. do so without interfering with the API of your module
+1. clearly and concisely express asynchronous flow control
+2. do so without interfering with the API of your module
