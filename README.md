@@ -17,6 +17,8 @@ orc.sequence functions...
 callback = orc.waitFor eventCallback
 ```
 
+## Why use it?
+
 Using orc should result in programs that avoid two common problems. The first
 is created when using the javascript event mechanism directly to express the
 asynchronous parts of your program. In this situation the problem is that the
