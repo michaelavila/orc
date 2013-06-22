@@ -6,13 +6,13 @@ and less obtrusive than the alternatives
 [alternatives](https://github.com/caolan/async). This is the interface to orc:
 
 ```coffeescript
-    # run a list of functions one after another
-    # waiting between functions that require
-    # some kind of asynchronous handling
-    orc.sequence functions...
+# run a list of functions one after another
+# waiting between functions that require
+# some kind of asynchronous handling
+orc.sequence functions...
 
-    # and in the functions that the sequence calls
-    # you wrap the callbacks you want to wait for
-    # with the orc waitFor decorator
-    callback = orc.waitFor eventCallback
+# and in the functions that the sequence calls
+# you wrap the callbacks you want to wait for
+# with the orc waitFor decorator
+callback = orc.waitFor eventCallback
 ```
