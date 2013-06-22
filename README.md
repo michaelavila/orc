@@ -23,7 +23,7 @@ asynchronous parts of your program. In this situation the problem is that the
 flow of the program jumps from event handler to event handler. This makes the
 program difficult to understand and work with. The second situation involves
 using something like caolan's [async](https://github.com/caolan/async).
-Unfortunately, these implementations require you to introduce implementation
+Unfortunately, implementations like this require you to introduce implementation
 details about how asynchrony is managed into the signature of the asynchronous
 methods.
 
