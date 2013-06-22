@@ -39,6 +39,16 @@ describe 'Orchestrator', ->
             orcCallback()
             expect(log).toBe 'callback end of sequence'
 
+        it 'passes on the arguments it receives', ->
+            log = ''
+            orcCallback = null
+
+            orc.sequence (-> orcCallback = orc.waitFor((arg) -> log += "callback #{arg} ")), (-> log += 'end of sequence')
+            expect(log).toBe ''
+
+            orcCallback('testarg')
+            expect(log).toBe 'callback testarg end of sequence'
+
     describe 'sequence', ->
         it 'works with non-async functions', ->
             log = ''

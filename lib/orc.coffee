@@ -35,7 +35,7 @@ class Orchestrator
     waitFor: (callback) ->
         @wait()
         executor = @currentExecutor()
-        -> callback(); executor.done()
+        -> callback arguments... ; executor.done()
 
     sequence: (functions...) ->
         executor = new Executor functions
