@@ -16,3 +16,18 @@ orc.sequence functions...
 # with the orc waitFor decorator
 callback = orc.waitFor eventCallback
 ```
+
+Using orc should result in programs that avoid two common problems. The first
+is created when using the javascript event mechanism directly to express the
+asynchronous parts of your program. In this situation the problem is that the
+flow of the program jumps from event handler to event handler. This makes the
+program difficult to understand and work with. The second situation involves
+using something like caolan's [async](https://github.com/caolan/async).
+Unfortunately, these implementations require you to introduce implementation
+details about how asynchrony is managed into the signature of the asynchronous
+methods.
+
+So orc will, hopefully, help you:
+
+a. clearly and concisely express asynchronous flow control
+b. do so without interfering with the API of your module
