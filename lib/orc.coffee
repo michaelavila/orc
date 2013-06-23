@@ -39,8 +39,8 @@ class Orc
         @currentStack.last().wait()
 
     waitFor: (callback) ->
-        # save context and contextStack in this scope so that they can be used
-        # to execute the decorated callback later
+        # first wait, then save the context and contextStack in this scope so
+        # that they can be used to execute the decorated callback later
         context = @wait()
         contextStack = @currentStack
         =>
