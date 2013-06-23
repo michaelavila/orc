@@ -75,18 +75,16 @@ loadData = ->
         path: ''
 
     # here we wait
-    handleHTTPGet = orc.waitFor((response) ->
+    handleHTTPGet = (response) ->
         response.setEncoding 'utf8'
 
         # here we wait as well
-        handleData = orc.waitFor((chunk) ->
+        handleData = (chunk) ->
             console.log "data loaded #{chunk}"
-        )
 
-        response.on 'data', handleData
-    )
+        response.on 'data', orc.waitFor(handleData)
 
-    http.get options, handleHTTPGet
+    http.get options, orc.waitFor(handleHTTPGet)
 
 renderPage = ->
     console.log 'now render the page'
