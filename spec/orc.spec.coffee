@@ -49,6 +49,27 @@ describe 'Orchestrator', ->
             orcCallback('testarg')
             expect(log).toBe 'callback testarg end of sequence'
 
+        it 'can be nested in other waitFor callbacks', ->
+            log = ''
+            orcOuterCallback = null
+            orcInnerCallback = null
+
+            orc.sequence (->
+                orcOuterCallback = orc.waitFor(->
+                    log += 'callback '
+                    orcInnerCallback = orc.waitFor -> log += 'inner callback '
+                )
+            ), (->
+                log += 'end of sequence'
+            )
+            expect(log).toBe ''
+
+            orcOuterCallback()
+            expect(log).toBe 'callback '
+
+            orcInnerCallback()
+            expect(log).toBe 'callback inner callback end of sequence'
+
     describe 'sequence', ->
         it 'works with non-async functions', ->
             log = ''

@@ -34,8 +34,13 @@ class Orchestrator
 
     waitFor: (callback) ->
         @wait()
+        executionStack = @currentExecutionContextStack
         executor = @currentExecutionContext()
-        -> callback arguments... ; executor.done()
+        =>
+            @currentExecutionContextStack = executionStack
+            callback arguments...
+            executor.done()
+            @currentExecutionContextStack = null
 
     sequence: (functions...) ->
         executor = new ExecutionContext functions
