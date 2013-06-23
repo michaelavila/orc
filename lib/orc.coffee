@@ -1,3 +1,12 @@
+Array::isEmpty = ->
+    @length == 0
+
+Array::last = ->
+    @[@length-1]
+
+Array::remove = (object) ->
+    @splice @indexOf(object), 1
+
 class ExecutionContext
     constructor: (@functions) ->
         @holds = 0
@@ -14,65 +23,55 @@ class ExecutionContext
         @readyCallback() unless @waiting()
 
     hasFunctions: ->
-        @functions.length > 0
+        not @functions.isEmpty()
 
     executeNext: ->
         @functions.shift()()
 
 class Orchestrator
     constructor: ->
-        @executors = []
-        @currentExecutionContextStack = null
-
-    currentExecutionContext: ->
-        @currentExecutionContextStack[@currentExecutionContextStack.length-1]
+        @contexts = []
+        @currentStack = null
 
     wait: ->
-        @currentExecutionContext().wait()
+        @currentStack.last().wait()
 
     waitFor: (callback) ->
         @wait()
-        executionStack = @currentExecutionContextStack
-        executor = @currentExecutionContext()
+        executionStack = @currentStack
         =>
-            @currentExecutionContextStack = executionStack
+            @currentStack = executionStack
             callback arguments...
-            executor.done()
-            @currentExecutionContextStack = null
+            executionStack.last().done()
+            @currentStack = null
 
     sequence: (functions...) ->
         executor = new ExecutionContext functions
-        if @currentExecutionContextStack?
-            @currentExecutionContextStack.push executor
+        if @currentStack?
+            @currentStack.push executor
         else
-            @executors.push [executor]
+            @contexts.push [executor]
         @execute()
         executor
 
     canExecute: ->
-        for executorStack in @executors
-            if executorStack.length > 0 and not executorStack[executorStack.length-1].waiting()
-                return true
-        return false
+        for executorStack in @contexts
+            return true unless executorStack.isEmpty() or executorStack.last().waiting()
 
     execute: =>
         while @canExecute()
-            for executorStack in @executors
-                @currentExecutionContextStack = executorStack
-                executor = @currentExecutionContext()
+            for executorStack in @contexts
+                @currentStack = executorStack
+                context = @currentStack.last()
 
-                if executor.hasFunctions()
-                    executor.executeNext()
+                context.executeNext @execute if context.hasFunctions()
+                context.readyCallback = @execute if context.waiting()
+                executorStack.pop() unless context.waiting() or context.hasFunctions()
 
-                if executor.waiting()
-                    executor.readyCallback = @execute
-                if not executor.waiting() and not executor.hasFunctions()
-                    executorStack.pop()
-
-                if executorStack.length == 0
-                    @executors.splice @executors.indexOf(executorStack), 1
+                if executorStack.isEmpty()
+                    @contexts.remove executorStack
                     break
-        @currentExecutionContextStack = null
+        @currentStack = null
 
 module.exports.Orchestrator = Orchestrator
 module.exports.ExecutionContext = ExecutionContext
