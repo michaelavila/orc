@@ -25,8 +25,9 @@ class ExecutionContext
     hasFunctions: ->
         not @functions.isEmpty()
 
-    executeNext: ->
+    executeNext: (readyCallback) ->
         @functions.shift()()
+        @readyCallback = readyCallback if @waiting()
 
 class Orchestrator
     constructor: ->
@@ -46,30 +47,24 @@ class Orchestrator
             @currentStack = null
 
     sequence: (functions...) ->
-        executor = new ExecutionContext functions
-        if @currentStack?
-            @currentStack.push executor
-        else
-            @contexts.push [executor]
+        context = new ExecutionContext functions
+        if @currentStack? then @currentStack.push context else @contexts.push [context]
         @execute()
-        executor
+        context
 
     canExecute: ->
-        for executorStack in @contexts
-            return true unless executorStack.isEmpty() or executorStack.last().waiting()
+        for contextStack in @contexts
+            return true unless contextStack.isEmpty() or contextStack.last().waiting()
 
     execute: =>
         while @canExecute()
-            for executorStack in @contexts
-                @currentStack = executorStack
+            for contextStack in @contexts
+                @currentStack = contextStack
                 context = @currentStack.last()
-
                 context.executeNext @execute if context.hasFunctions()
-                context.readyCallback = @execute if context.waiting()
-                executorStack.pop() unless context.waiting() or context.hasFunctions()
-
-                if executorStack.isEmpty()
-                    @contexts.remove executorStack
+                contextStack.pop() unless context.waiting() or context.hasFunctions()
+                if contextStack.isEmpty()
+                    @contexts.remove contextStack
                     break
         @currentStack = null
 
