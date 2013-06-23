@@ -39,11 +39,11 @@ class Orc
 
     waitFor: (callback) ->
         @wait()
-        executionStack = @currentStack
+        contextStack = @currentStack
         =>
-            @currentStack = executionStack
+            @currentStack = contextStack
             callback arguments...
-            executionStack.last().done()
+            contextStack.last().done()
             @currentStack = null
 
     sequence: (functions...) ->

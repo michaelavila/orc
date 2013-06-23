@@ -3,29 +3,29 @@ ExecutionContext = require('../lib/orc').ExecutionContext
 
 describe 'ExecutionContext', ->
     it 'can wait for many things', ->
-        executor = new ExecutionContext()
-        executor.readyCallback = ->
+        context = new ExecutionContext()
+        context.readyCallback = ->
 
-        executor.wait()
-        executor.wait()
-        expect(executor.waiting()).toBe true
+        context.wait()
+        context.wait()
+        expect(context.waiting()).toBe true
 
-        executor.done()
-        expect(executor.waiting()).toBe true
+        context.done()
+        expect(context.waiting()).toBe true
 
-        executor.done()
-        expect(executor.waiting()).toBe false
+        context.done()
+        expect(context.waiting()).toBe false
 
     it 'handles too many dones() gracefully', ->
-        executor = new ExecutionContext()
-        executor.readyCallback = ->
+        context = new ExecutionContext()
+        context.readyCallback = ->
 
-        executor.done()
-        executor.done()
-        expect(executor.waiting()).toBe false
+        context.done()
+        context.done()
+        expect(context.waiting()).toBe false
 
-        executor.wait()
-        expect(executor.waiting()).toBe true
+        context.wait()
+        expect(context.waiting()).toBe true
 
 describe 'Orc', ->
     describe 'waitFor', ->
@@ -85,10 +85,10 @@ describe 'Orc', ->
             a = -> log += 'a'; orc.wait()
             b = -> log += 'b'
              
-            executor = orc.sequence a, b
+            context = orc.sequence a, b
             expect(log).toBe 'a'
             
-            executor.done()
+            context.done()
             expect(log).toBe 'ab'
 
         it 'can run several simulatenously', ->
@@ -100,15 +100,15 @@ describe 'Orc', ->
             c = -> log2 += 'c'; orc.wait()
             d = -> log2 += 'd'
              
-            executor1 = orc.sequence a, b
+            context1 = orc.sequence a, b
             expect(log1).toBe 'a'
-            executor2 = orc.sequence c, d
+            context2 = orc.sequence c, d
             expect(log2).toBe 'c'
 
-            executor2.done()
+            context2.done()
             expect(log2).toBe 'cd'
 
-            executor1.done()
+            context1.done()
             expect(log1).toBe 'ab'
 
         it 'can nest non-async', ->
@@ -122,33 +122,33 @@ describe 'Orc', ->
             expect(log).toBe 'abbc'
 
         it 'can nest async', ->
-            inner_executor = null
+            inner_context = null
 
             log = ''
             a = -> log += 'a'; orc.wait()
-            b = -> inner_executor = orc.sequence (-> log += 'b'; orc.wait()), (-> log += 'b')
+            b = -> inner_context = orc.sequence (-> log += 'b'; orc.wait()), (-> log += 'b')
             c = -> log += 'c'
 
-            executor = orc.sequence a, b, c
+            context = orc.sequence a, b, c
             expect(log).toBe 'a'
             
-            executor.done()
+            context.done()
             expect(log).toBe 'ab'
 
-            inner_executor.done()
+            inner_context.done()
             expect(log).toBe 'abbc'
 
         it 'properly handles a sequence that ends waiting without functions', ->
             log = ''
 
-            inner_executor = null
+            inner_context = null
             orc.sequence (->
-                inner_executor = orc.sequence (-> log += 'a'), (-> orc.wait())
+                inner_context = orc.sequence (-> log += 'a'), (-> orc.wait())
             ), (->
                 log += 'b'
             )
 
             expect(log).toBe 'a'
 
-            inner_executor.done()
+            inner_context.done()
             expect(log).toBe 'ab'
