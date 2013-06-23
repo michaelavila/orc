@@ -120,4 +120,4 @@ now render the page
 
 You can see that everything was executed in the correct order by inspecting the
 output. The data is loaded and then at the very end it is "rendered" (even
-though we aren't technically rendering it.
+though we aren't technically rendering it.)
