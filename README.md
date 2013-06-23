@@ -48,3 +48,12 @@ executing, the strategy being used to execute, and whether or not orc should
 wait before proceeding with the next execution. Orc uses a set of stacks of
 queues to ensure that each execution is carried out at the correct time and in
 the correct order.
+
+The condemned functions are placed into queues so that they can be executed in
+the correct order. Each execution context keeps track of a single queue. When
+a new execution is called for during another execution a new context is created
+and stacked on top of the current context. Orc only carries out executions from
+the top of the execution context stacks. When orc is asked to carry out multiple
+executions at the same time it simply places all of the execution stacks into a
+set. That is it: a set of stacks of queues and a context to keep track of extra
+information associated with each queue.
