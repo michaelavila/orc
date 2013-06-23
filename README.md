@@ -29,29 +29,22 @@ Unfortunately, implementations like this require you to introduce implementation
 details about how asynchrony is managed into the signature of the asynchronous
 methods.
 
-So orc will, hopefully, help you:
+So orc will help you:
 
 1. clearly and concisely express asynchronous flow control
 2. do so without interfering with the API of your module
 
 ## How does it work?
 
-The design of orc is simple.
+Orc is a simple beast. A methodical executor, orc orchestrates the execution of
+lists of functions. Orc has two execution strategies: one by one or all at once.
+These strategies can be carried out alone, combined, and at the same time. At
+any point during the execution orc can be asked to wait so that a more thorough
+execution can take place.
 
-Orc orchestrates the execution of a list of functions. Executing this list of
-functions one after the other is called a sequence. Orc, before proceeding from
-one function to the next, checks to see if it is waiting.  If orc is waiting
-then it stops and only proceeds to execute the sequence once it is done waiting.
-
-At any point during the execution of your sequence functions orc can be told to
-wait until a callback is executed. Orc can be instructed to wait for no, one,
-or many things. Orc can run sequences in parallel and nested in one another.
-
-Orc achieves this by creating an executor for each sequence. This executor acts
-as an execution context in which we keep track of which functions belong to the
-sequence and whether we are waiting on anything from them. If wait is called during
-a sequence then it is routed to the current executor. If sequence is called
-during a sequence then an executor is placed on the execution stack and executed
-before completing the original sequence. When calling sequence in parallel with
-another sequence orc creates an execution stack and places it next to the current
-sequence execution stack.
+Orc achieves all of this through the use of some simple data structures and an
+execution context. Execution contexts help orc keep track of what it is
+executing, the strategy being used to execute, and whether or not orc should
+wait before proceeding with the next execution. Orc uses a set of stacks of
+queues to ensure that each execution is carried out at the correct time and in
+the correct order.
