@@ -31,7 +31,7 @@ class ExecutionContext
 
 class Orc
     constructor: ->
-        @contexts = []
+        @stacks = []
         @currentStack = null
 
     wait: ->
@@ -48,23 +48,23 @@ class Orc
 
     sequence: (functions...) ->
         context = new ExecutionContext functions
-        if @currentStack? then @currentStack.push context else @contexts.push [context]
+        if @currentStack? then @currentStack.push context else @stacks.push [context]
         @execute()
         context
 
     canExecute: ->
-        for contextStack in @contexts
+        for contextStack in @stacks
             return true unless contextStack.isEmpty() or contextStack.last().waiting()
 
     execute: =>
         while @canExecute()
-            for contextStack in @contexts
+            for contextStack in @stacks
                 @currentStack = contextStack
                 context = @currentStack.last()
                 context.executeNext @execute if context.hasFunctions()
                 contextStack.pop() unless context.waiting() or context.hasFunctions()
                 if contextStack.isEmpty()
-                    @contexts.remove contextStack
+                    @stacks.remove contextStack
                     break
         @currentStack = null
 
