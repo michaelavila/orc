@@ -27,7 +27,7 @@ describe 'ExecutionContext', ->
         executor.wait()
         expect(executor.waiting()).toBe true
 
-describe 'Orchestrator', ->
+describe 'Orc', ->
     describe 'waitFor', ->
         it 'waits for callback to be called', ->
             log = ''

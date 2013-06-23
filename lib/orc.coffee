@@ -29,7 +29,7 @@ class ExecutionContext
         @functions.shift()()
         @readyCallback = readyCallback if @waiting()
 
-class Orchestrator
+class Orc
     constructor: ->
         @contexts = []
         @currentStack = null
@@ -68,6 +68,6 @@ class Orchestrator
                     break
         @currentStack = null
 
-module.exports.Orchestrator = Orchestrator
+module.exports.Orc = Orc
 module.exports.ExecutionContext = ExecutionContext
-module.exports.orc = new Orchestrator()
+module.exports.orc = new Orc()
