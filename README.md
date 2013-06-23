@@ -57,3 +57,67 @@ the top of the execution context stacks. When orc is asked to carry out multiple
 executions at the same time it simply places all of the execution stacks into a
 set. That is it: a set of stacks of queues and a context to keep track of extra
 information associated with each queue.
+
+## Working Example
+
+The following example loads some content, in this case http://google.com, and
+then renders that content in some way.
+
+```coffeescript
+orc = require('./lib/orc').orc
+
+loadData = ->
+    console.log 'load the data and wait'
+    http = require 'http'
+    options =
+        host: 'google.com'
+        port: 80
+        path: ''
+
+    # here we wait
+    handleHTTPGet = orc.waitFor((response) ->
+        response.setEncoding 'utf8'
+
+        # here we wait as well
+        handleData = orc.waitFor((chunk) ->
+            console.log "data loaded #{chunk}"
+        )
+
+        response.on 'data', handleData
+    )
+
+    http.get options, handleHTTPGet
+
+renderPage = ->
+    console.log 'now render the page'
+
+
+# this is where we initiate the sequence
+orc.sequence loadData, renderPage
+```
+
+Obviously the important thing here is that the content must complete loading
+before we proceed to render. I've included some sample code for making an http
+request in the `loadData` function and `renderPage` simply reports that it was
+called. I imagine you can fill in the details of what `renderPage` might go on
+to do.
+
+If you save this example to say `example.coffee` and then run the coffee
+interpreter on it you should see the following:
+
+```bash
+$ coffee example.coffee
+load the data and wait
+data loaded <HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">
+<TITLE>301 Moved</TITLE></HEAD><BODY>
+<H1>301 Moved</H1>
+The document has moved
+<A HREF="http://www.google.com/">here</A>.
+</BODY></HTML>
+
+now render the page
+```
+
+You can see that everything was executed in the correct order by inspecting the
+output. The data is loaded and then at the very end it is "rendered" (even
+though we aren't technically rendering it.
