@@ -9,11 +9,9 @@ class ExecutionContext
         @holds++
 
     done: ->
-        if not @waiting()
-            return
+        return unless @waiting()
         @holds--
-        if not @waiting()
-            @readyCallback()
+        @readyCallback() unless @waiting()
 
     hasFunctions: ->
         @functions.length > 0
