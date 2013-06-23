@@ -1,9 +1,9 @@
 orc = require('../lib/orc').orc
-Executor = require('../lib/orc').Executor
+ExecutionContext = require('../lib/orc').ExecutionContext
 
-describe 'Executor', ->
+describe 'ExecutionContext', ->
     it 'can wait for many things', ->
-        executor = new Executor()
+        executor = new ExecutionContext()
         executor.readyCallback = ->
 
         executor.wait()
@@ -17,7 +17,7 @@ describe 'Executor', ->
         expect(executor.waiting()).toBe false
 
     it 'handles too many dones() gracefully', ->
-        executor = new Executor()
+        executor = new ExecutionContext()
         executor.readyCallback = ->
 
         executor.done()

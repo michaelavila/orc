@@ -1,4 +1,4 @@
-class Executor
+class ExecutionContext
     constructor: (@functions) ->
         @holds = 0
 
@@ -24,23 +24,23 @@ class Executor
 class Orchestrator
     constructor: ->
         @executors = []
-        @currentExecutorStack = null
+        @currentExecutionContextStack = null
 
-    currentExecutor: ->
-        @currentExecutorStack[@currentExecutorStack.length-1]
+    currentExecutionContext: ->
+        @currentExecutionContextStack[@currentExecutionContextStack.length-1]
 
     wait: ->
-        @currentExecutor().wait()
+        @currentExecutionContext().wait()
 
     waitFor: (callback) ->
         @wait()
-        executor = @currentExecutor()
+        executor = @currentExecutionContext()
         -> callback arguments... ; executor.done()
 
     sequence: (functions...) ->
-        executor = new Executor functions
-        if @currentExecutorStack?
-            @currentExecutorStack.push executor
+        executor = new ExecutionContext functions
+        if @currentExecutionContextStack?
+            @currentExecutionContextStack.push executor
         else
             @executors.push [executor]
         @execute()
@@ -55,8 +55,8 @@ class Orchestrator
     execute: =>
         while @canExecute()
             for executorStack in @executors
-                @currentExecutorStack = executorStack
-                executor = @currentExecutor()
+                @currentExecutionContextStack = executorStack
+                executor = @currentExecutionContext()
 
                 if executor.hasFunctions()
                     executor.executeNext()
@@ -69,8 +69,8 @@ class Orchestrator
                 if executorStack.length == 0
                     @executors.splice @executors.indexOf(executorStack), 1
                     break
-        @currentExecutorStack = null
+        @currentExecutionContextStack = null
 
 module.exports.Orchestrator = Orchestrator
-module.exports.Executor = Executor
+module.exports.ExecutionContext = ExecutionContext
 module.exports.orc = new Orchestrator()
