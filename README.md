@@ -74,16 +74,16 @@ loadData = ->
         port: 80
         path: ''
 
-    # here we wait
     handleHTTPGet = (response) ->
         response.setEncoding 'utf8'
 
-        # here we wait as well
         handleData = (chunk) ->
             console.log "data loaded #{chunk}"
 
+        # here we wait as well
         response.on 'data', orc.waitFor(handleData)
 
+    # here we wait
     http.get options, orc.waitFor(handleHTTPGet)
 
 renderPage = ->
