@@ -23,7 +23,7 @@ class ExecutionContext
         @holds--
         @readyCallback() unless @waiting()
 
-    hasFunctions: ->
+    canExecute: ->
         not @functions.isEmpty()
 
     executeNext: (readyCallback) ->
@@ -75,14 +75,14 @@ class Orc
 
     execute: =>
         while @canExecute()
-            for contextStack in @stacks
-                @currentStack = contextStack
+            for @currentStack in @stacks
                 context = @currentStack.last()
-                context.executeNext @execute if context.hasFunctions()
-                contextStack.pop() unless context.waiting() or context.hasFunctions()
-                if contextStack.isEmpty()
-                    @stacks.remove contextStack
+                context.executeNext @execute if context.canExecute()
+                @currentStack.pop() unless context.waiting() or context.canExecute()
+                if @currentStack.isEmpty()
+                    @stacks.remove @currentStack
                     break
+
         @currentStack = null
 
 module.exports.Orc = Orc
