@@ -63,8 +63,10 @@ class Orc
         # orc either adds this context to the current stack or creates a new
         # stack, @currentStack is only set when orc is already in the process
         # of executing a sequence
-        if @currentStack? then @currentStack.push context else @stacks.push [context]
-        if not currentlyExecuting
+        if currentlyExecuting
+            @currentStack.push context
+        else
+            @stacks.push [context]
             @execute()
         # return the context just in case it is needed for anything
         context
