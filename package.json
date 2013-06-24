@@ -1,7 +1,7 @@
 {
   "name": "orc",
-  "description": "A CoffeeScript library that allows you to more clearly express the asynchronous aspects of your program.",
-  "version": "0.0.9",
+  "description": "Asynchronous flow control library.",
+  "version": "0.0.10",
   "dependencies": {
     "coffee-script": "~1.6.1"
   },
