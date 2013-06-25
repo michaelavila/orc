@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Orc by michaelavila</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Orc</h1>
+        <p>Asynchronous flow control library</p>
+
+        <p class="view"><a href="https://github.com/michaelavila/orc">View the Project on GitHub <small>michaelavila/orc</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/michaelavila/orc/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/michaelavila/orc/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/michaelavila/orc">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="orc" class="anchor" href="#orc"><span class="octicon octicon-link"></span></a>orc</h1>
+
+<p>Orc is designed with one particular goal in mind: to simplify how event driven
+programs are written. The approach orc takes in solving this problem is simpler
+and less obtrusive than the <a href="https://github.com/caolan/async">alternatives</a>.
+This is the interface to orc:</p>
+
+<div class="highlight"><pre><span class="c1"># run a list of functions one after another</span>
+<span class="c1"># waiting between functions that require</span>
+<span class="c1"># some kind of asynchronous handling</span>
+<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">functions</span><span class="p">...</span>
+
+<span class="c1"># and in the functions that the sequence calls</span>
+<span class="c1"># you wrap the callbacks you want to wait for</span>
+<span class="c1"># with the orc waitFor decorator</span>
+<span class="nv">callback = </span><span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span> <span class="nx">eventCallback</span>
+</pre></div>
+
+<h2>
+<a name="why-use-it" class="anchor" href="#why-use-it"><span class="octicon octicon-link"></span></a>Why use it?</h2>
+
+<p>Using orc should result in programs that avoid two common problems. The first
+is created when using the javascript event mechanism directly to express the
+asynchronous parts of your program. In this situation the problem is that the
+flow of the program jumps from event handler to event handler. This makes the
+program difficult to understand and work with. The second situation involves
+using something like caolan's <a href="https://github.com/caolan/async">async</a>.
+Unfortunately, implementations like this require you to introduce implementation
+details about how asynchrony is managed into the signature of the asynchronous
+methods.</p>
+
+<p>So orc will help you:</p>
+
+<ol>
+<li>clearly and concisely express asynchronous flow control</li>
+<li>do so without interfering with the API of your module</li>
+</ol><h2>
+<a name="how-does-it-work" class="anchor" href="#how-does-it-work"><span class="octicon octicon-link"></span></a>How does it work?</h2>
+
+<p>Orc is a simple beast. A methodical executor, orc orchestrates the execution of
+lists of functions. Orc has two execution strategies: one by one or all at once.
+These strategies can be carried out alone, combined, and at the same time. At
+any point during the execution orc can be asked to wait so that a more thorough
+execution can take place.</p>
+
+<p>Orc achieves all of this through the use of some simple data structures and an
+execution context. Execution contexts help orc keep track of what it is
+executing, the strategy being used to execute, and whether or not orc should
+wait before proceeding with the next execution. Orc uses a set of stacks of
+queues to ensure that each execution is carried out at the correct time and in
+the correct order.</p>
+
+<p>The condemned functions are placed into queues so that they can be executed in
+the correct order. Each execution context keeps track of a single queue. When
+a new execution is called for during another execution a new context is created
+and stacked on top of the current context. Orc only carries out executions from
+the top of the execution context stacks. When orc is asked to carry out multiple
+executions at the same time it simply places all of the execution stacks into a
+set. That is it: a set of stacks of queues and a context to keep track of extra
+information associated with each queue.</p>
+
+<h2>
+<a name="working-example" class="anchor" href="#working-example"><span class="octicon octicon-link"></span></a>Working Example</h2>
+
+<p>The following example loads some content, in this case <a href="http://google.com">http://google.com</a>, and
+then renders that content in some way.</p>
+
+<div class="highlight"><pre><span class="nv">orc = </span><span class="nx">require</span><span class="p">(</span><span class="s">'./lib/orc'</span><span class="p">).</span><span class="nx">orc</span>
+
+<span class="nv">loadData = </span><span class="nf">-&gt;</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">'load the data and wait'</span>
+    <span class="nv">http = </span><span class="nx">require</span> <span class="s">'http'</span>
+    <span class="nv">options =</span>
+        <span class="nv">host: </span><span class="s">'google.com'</span>
+        <span class="nv">port: </span><span class="mi">80</span>
+        <span class="nv">path: </span><span class="s">''</span>
+
+    <span class="nv">handleHTTPGet = </span><span class="nf">(response) -&gt;</span>
+        <span class="nx">response</span><span class="p">.</span><span class="nx">setEncoding</span> <span class="s">'utf8'</span>
+
+        <span class="nv">handleData = </span><span class="nf">(chunk) -&gt;</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">"data loaded </span><span class="si">#{</span><span class="nx">chunk</span><span class="si">}</span><span class="s">"</span>
+
+        <span class="c1"># here we wait as well</span>
+        <span class="nx">response</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">handleData</span><span class="p">)</span>
+
+    <span class="c1"># here we wait</span>
+    <span class="nx">http</span><span class="p">.</span><span class="nx">get</span> <span class="nx">options</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">handleHTTPGet</span><span class="p">)</span>
+
+<span class="nv">renderPage = </span><span class="nf">-&gt;</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">'now render the page'</span>
+
+
+<span class="c1"># this is where we initiate the sequence</span>
+<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">loadData</span><span class="p">,</span> <span class="nx">renderPage</span>
+</pre></div>
+
+<p>Obviously the important thing here is that the content must complete loading
+before we proceed to render. I've included some sample code for making an http
+request in the <code>loadData</code> function and <code>renderPage</code> simply reports that it was
+called. I imagine you can fill in the details of what <code>renderPage</code> might go on
+to do.</p>
+
+<p>If you save this example to say <code>example.coffee</code> and then run the coffee
+interpreter on it you should see the following:</p>
+
+<div class="highlight"><pre><span class="nv">$ </span>coffee example.coffee
+load the data and <span class="nb">wait</span>
+data loaded &lt;HTML&gt;&lt;HEAD&gt;&lt;meta http-equiv<span class="o">=</span><span class="s2">"content-type"</span> <span class="nv">content</span><span class="o">=</span><span class="s2">"text/html;charset=utf-8"</span>&gt;
+&lt;TITLE&gt;301 Moved&lt;/TITLE&gt;&lt;/HEAD&gt;&lt;BODY&gt;
+&lt;H1&gt;301 Moved&lt;/H1&gt;
+The document has moved
+&lt;A <span class="nv">HREF</span><span class="o">=</span><span class="s2">"http://www.google.com/"</span>&gt;here&lt;/A&gt;.
+&lt;/BODY&gt;&lt;/HTML&gt;
+
+now render the page
+</pre></div>
+
+<p>You can see that everything was executed in the correct order by inspecting the
+output. The data is loaded and then at the very end it is "rendered" (even
+though we aren't technically rendering it.)</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/michaelavila">michaelavila</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
