@@ -6,11 +6,12 @@
     "coffee-script": "~1.6.1"
   },
   "devDependencies": {
-    "jasmine-node": "~1.8.1"
+    "jasmine-node": "~1.8.1",
+    "coffeelint": "0.5.6"
   },
   "engine": "node >= 0.8.21",
   "scripts": {
-    "test": "jasmine-node --coffee spec"
+    "test": "jasmine-node --coffee spec && coffeelint lib/orc.coffee spec/orc.spec.coffee"
   },
   "repository": {
       "type": "git",
