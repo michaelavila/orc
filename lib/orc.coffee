@@ -23,14 +23,17 @@ class Orc
   waitFor: (callback) =>
     # first wait, then save the context and contextStack in this scope so
     # that they can be used to execute the decorated callback later
-    context = @wait()
+    context = @currentStack.last().wait()
     contextStack = @currentStack
     =>
       if callback?
         # set the current contextStack so that calls to orc.waitFor made by
         # the callback will be routed to the correct context
         @currentStack = contextStack
-        callback arguments...
+        try
+          callback arguments...
+        catch error
+          @currentStack.last().handleError error, context
         # we don't need @currentStack for the time being
         @currentStack = null
       # this done is required because of the @wait line at the beginning
@@ -52,9 +55,6 @@ class Orc
           break
 
     @currentStack = null
-
-  wait: ->
-    @currentStack.last().wait()
 
   canExecute: ->
     for contextStack in @stacks
@@ -82,6 +82,12 @@ class ExecutionContext
   executeNext: (readyCallback) ->
     @functions.shift()()
     @readyCallback = readyCallback if @waiting()
+
+  handleError: ->
+    @fail()
+
+  fail: ->
+    throw new OrcError()
 
 class OrcError extends Error
 

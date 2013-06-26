@@ -28,13 +28,23 @@ describe 'ExecutionContext', ->
     context.wait()
     expect(context.waiting()).toBe true
 
+  describe 'handleError', ->
+    it 'throws OrcError', ->
+      context = new ExecutionContext()
+      expect(context.handleError).toThrow OrcError
+
+  describe 'fail', ->
+    it 'throws OrcError', ->
+      context = new ExecutionContext()
+      expect(context.fail).toThrow OrcError
+
 describe 'Orc', ->
   describe 'errorOn', ->
     it 'returns a callback that throws an OrcError', ->
       orc.sequence ->
         expect(orc.errorOn()).toThrow OrcError
 
-    it 'causes sequence to call handleError', ->
+    it 'causes sequence to error', ->
       log = ''
 
       expect(
@@ -42,7 +52,28 @@ describe 'Orc', ->
       ).toThrow OrcError
       expect(log).toBe ''
 
-    it 'calls callback before throwing error', ->
+    it 'asynchronously calls handleError on the correct context', ->
+      callback = null
+      context = orc.sequence ->
+        callback = orc.waitFor orc.errorOn()
+
+      log = ''
+      context.handleError = -> log += 'handleError'
+
+      callback()
+      expect(log).toBe 'handleError'
+
+    it 'gives handleError the error on the context', ->
+      callback = null
+      context = orc.sequence ->
+        callback = orc.waitFor orc.errorOn()
+
+      log = ''
+      context.handleError = (errorArg, contextArg) ->
+        expect(errorArg).not.toBe null
+        expect(contextArg).toBe context
+
+      callback()
 
   describe 'waitFor', ->
     it 'does not require a callback argument', ->
@@ -114,7 +145,7 @@ describe 'Orc', ->
 
     it 'works with async functions', ->
       log = ''
-      a = -> log += 'a'; orc.wait()
+      a = -> log += 'a'; orc.waitFor()
       b = -> log += 'b'
            
       context = orc.sequence a, b
@@ -125,11 +156,11 @@ describe 'Orc', ->
 
     it 'can run several simulatenously', ->
       log1 = ''
-      a = -> log1 += 'a'; orc.wait()
+      a = -> log1 += 'a'; orc.waitFor()
       b = -> log1 += 'b'
 
       log2 = ''
-      c = -> log2 += 'c'; orc.wait()
+      c = -> log2 += 'c'; orc.waitFor()
       d = -> log2 += 'd'
            
       context1 = orc.sequence a, b
@@ -157,9 +188,9 @@ describe 'Orc', ->
       inner_context = null
 
       log = ''
-      a = -> log += 'a'; orc.wait()
+      a = -> log += 'a'; orc.waitFor()
       b = -> inner_context = orc.sequence (->
-        log += 'b'; orc.wait()
+        log += 'b'; orc.waitFor()
       ), (->
         log += 'b'
       )
@@ -179,7 +210,7 @@ describe 'Orc', ->
 
       inner_context = null
       orc.sequence (->
-        inner_context = orc.sequence (-> log += 'a'), (-> orc.wait())
+        inner_context = orc.sequence (-> log += 'a'), (-> orc.waitFor())
       ), (->
         log += 'b'
       )
