@@ -156,3 +156,5 @@ renderContent = ->
 context = orc.sequence loadContent, renderContent
 context.handleError = (error, context) -> console.log "#{error} for #{context}"
 ```
+
+That's it.
