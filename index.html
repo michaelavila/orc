@@ -31,70 +31,24 @@
         <h1>
 <a name="orc" class="anchor" href="#orc"><span class="octicon octicon-link"></span></a>orc</h1>
 
-<p>Orc is designed with one particular goal in mind: to simplify how event driven
-programs are written. The approach orc takes in solving this problem is simpler
-and less obtrusive than the <a href="https://github.com/caolan/async">alternatives</a>.
-This is the interface to orc:</p>
-
-<div class="highlight"><pre><span class="c1"># run a list of functions one after another</span>
-<span class="c1"># waiting between functions that require</span>
-<span class="c1"># some kind of asynchronous handling</span>
-<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">functions</span><span class="p">...</span>
-
-<span class="c1"># and in the functions that the sequence calls</span>
-<span class="c1"># you wrap the callbacks you want to wait for</span>
-<span class="c1"># with the orc waitFor decorator</span>
-<span class="nv">callback = </span><span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span> <span class="nx">eventCallback</span>
-</pre></div>
-
-<h2>
-<a name="why-use-it" class="anchor" href="#why-use-it"><span class="octicon octicon-link"></span></a>Why use it?</h2>
-
-<p>Using orc should result in programs that avoid two common problems. The first
-is created when using the javascript event mechanism directly to express the
-asynchronous parts of your program. In this situation the problem is that the
-flow of the program jumps from event handler to event handler. This makes the
-program difficult to understand and work with. The second situation involves
-using something like caolan's <a href="https://github.com/caolan/async">async</a>.
-Unfortunately, implementations like this require you to introduce implementation
-details about how asynchrony is managed into the signature of the asynchronous
-methods.</p>
-
-<p>So orc will help you:</p>
+<p>Orc orchestrates the execution of lists of functions. This library will help you:</p>
 
 <ol>
-<li>clearly and concisely express asynchronous flow control</li>
-<li>do so without interfering with the API of your module</li>
-</ol><h2>
-<a name="how-does-it-work" class="anchor" href="#how-does-it-work"><span class="octicon octicon-link"></span></a>How does it work?</h2>
+<li>clearly and concisely express asynchronous flow</li>
+<li>do so without interfering with your API</li>
+</ol><p>Get it from npm:</p>
 
-<p>Orc is a simple beast. A methodical executor, orc orchestrates the execution of
-lists of functions. Orc has two execution strategies: one by one or all at once.
-These strategies can be carried out alone, combined, and at the same time. At
-any point during the execution orc can be asked to wait so that a more thorough
-execution can take place.</p>
-
-<p>Orc achieves all of this through the use of some simple data structures and an
-execution context. Execution contexts help orc keep track of what it is
-executing, the strategy being used to execute, and whether or not orc should
-wait before proceeding with the next execution. Orc uses a set of stacks of
-queues to ensure that each execution is carried out at the correct time and in
-the correct order.</p>
-
-<p>The condemned functions are placed into queues so that they can be executed in
-the correct order. Each execution context keeps track of a single queue. When
-a new execution is called for during another execution a new context is created
-and stacked on top of the current context. Orc only carries out executions from
-the top of the execution context stacks. When orc is asked to carry out multiple
-executions at the same time it simply places all of the execution stacks into a
-set. That is it: a set of stacks of queues and a context to keep track of extra
-information associated with each queue.</p>
+<pre><code>npm install orc
+</code></pre>
 
 <h2>
-<a name="working-example" class="anchor" href="#working-example"><span class="octicon octicon-link"></span></a>Working Example</h2>
+<a name="example" class="anchor" href="#example"><span class="octicon octicon-link"></span></a>Example</h2>
 
-<p>The following example loads some content, in this case <a href="http://google.com">http://google.com</a>, and
-then renders that content in some way.</p>
+<p>The following example is typical: make an HTTP request for some content and
+render that content in some way once we receive it. Here we tell orc to
+sequence the two functions loadData and renderPage. In the loadData function we
+tell orc to waitFor a response and then to wait for the data to finish loading.
+The renderPage function just logs "now render the page" to the console.</p>
 
 <div class="highlight"><pre><span class="nv">orc = </span><span class="nx">require</span><span class="p">(</span><span class="s">'./lib/orc'</span><span class="p">).</span><span class="nx">orc</span>
 
@@ -112,8 +66,10 @@ then renders that content in some way.</p>
         <span class="nv">handleData = </span><span class="nf">(chunk) -&gt;</span>
             <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">"data loaded </span><span class="si">#{</span><span class="nx">chunk</span><span class="si">}</span><span class="s">"</span>
 
+        <span class="nx">response</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">handleData</span>
+
         <span class="c1"># here we wait as well</span>
-        <span class="nx">response</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">handleData</span><span class="p">)</span>
+        <span class="nx">response</span><span class="p">.</span><span class="nx">on</span> <span class="s">'end'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">()</span>
 
     <span class="c1"># here we wait</span>
     <span class="nx">http</span><span class="p">.</span><span class="nx">get</span> <span class="nx">options</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">handleHTTPGet</span><span class="p">)</span>
@@ -126,14 +82,9 @@ then renders that content in some way.</p>
 <span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">loadData</span><span class="p">,</span> <span class="nx">renderPage</span>
 </pre></div>
 
-<p>Obviously the important thing here is that the content must complete loading
-before we proceed to render. I've included some sample code for making an http
-request in the <code>loadData</code> function and <code>renderPage</code> simply reports that it was
-called. I imagine you can fill in the details of what <code>renderPage</code> might go on
-to do.</p>
-
-<p>If you save this example to say <code>example.coffee</code> and then run the coffee
-interpreter on it you should see the following:</p>
+<p>If you run the example you will see that everything is called in the correct
+order. The renderPage function does not run until we have received all of the
+data from the loadData function. I've listed the output below:</p>
 
 <div class="highlight"><pre><span class="nv">$ </span>coffee example.coffee
 load the data and <span class="nb">wait</span>
@@ -147,9 +98,112 @@ The document has moved
 now render the page
 </pre></div>
 
-<p>You can see that everything was executed in the correct order by inspecting the
-output. The data is loaded and then at the very end it is "rendered" (even
-though we aren't technically rendering it.)</p>
+<h2>
+<a name="how-does-it-work" class="anchor" href="#how-does-it-work"><span class="octicon octicon-link"></span></a>How does it work?</h2>
+
+<p>Orc does as much of the bookkeeping as it can. You should almost never need
+anything more than the sequence, waitFor, and errorOn functions. Like anything
+else the more you know about orc the easier it is to work with.</p>
+
+<h3>
+<a name="sequence" class="anchor" href="#sequence"><span class="octicon octicon-link"></span></a>sequence</h3>
+
+<p>Everything begins with you telling orc to sequence some functions. Orc places
+these condemned functions into an ExecutionContext. The context lets orc keep
+the details of each execution separated. These details are things like the
+functions being executed and whether or not the execution is on hold for
+anything. At this point orc will begin executing, if it's not already.</p>
+
+<p>Orc can execute both dependent and independent sequences. A sequence is dependent
+when it requires another sequence to complete before it completes. Dependent
+sequences are called inside of other sequences kinda like this:</p>
+
+<div class="highlight"><pre><span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nf">-&gt;</span>
+  <span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="p">...</span>
+</pre></div>
+
+<p>Independent sequences on the other hand look kinda like this:</p>
+
+<div class="highlight"><pre><span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="p">...</span>
+<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="p">...</span>
+</pre></div>
+
+<p>Whether or not one sequence depends on another sequence determines where orc
+puts the execution context. If the sequence is independent orc will add it
+alongside whatever other contexts exist. If the sequence is dependent orc
+will stack the context on top of whichever context depends on it. Orc then
+manages these dependencies by only executing from the context at the top of of
+each stack.</p>
+
+<h3>
+<a name="waitfor" class="anchor" href="#waitfor"><span class="octicon octicon-link"></span></a>waitFor</h3>
+
+<p>The waitFor decorator is simple. First it saves the current context so that
+later on it can determine which context the decorated function belongs to. Then
+it returns a function that wraps the callback it was provided.</p>
+
+<p>The decorated function that waitFor returns will set the current context to the
+context that was saved earlier. This ensures that any waitFor calls made during
+the callback will be routed to the correct context. At the very end, once it
+has executed the callback, the waitFor function will call done on the correct
+context.</p>
+
+<h2>
+<a name="getting-started" class="anchor" href="#getting-started"><span class="octicon octicon-link"></span></a>Getting Started</h2>
+
+<p><strong>1)</strong> Require orc</p>
+
+<div class="highlight"><pre><span class="nv">orc = </span><span class="nx">require</span><span class="p">(</span><span class="s">'orc'</span><span class="p">).</span><span class="nx">orc</span>
+</pre></div>
+
+<p><strong>2)</strong> Sequence some functions</p>
+
+<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
+<span class="nv">bar = </span><span class="nf">-&gt;</span>
+
+<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">foo</span><span class="p">,</span> <span class="nx">bar</span>
+</pre></div>
+
+<p><strong>3)</strong> Wait for some stuff</p>
+
+<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
+  <span class="nv">request = </span><span class="nx">loader</span><span class="p">.</span><span class="nx">get</span> <span class="nx">someDataUrl</span>
+  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">parseData</span><span class="p">)</span>
+
+<span class="nv">renderContent = </span><span class="nf">-&gt;</span>
+  <span class="nx">animator</span><span class="p">.</span><span class="nx">do</span> <span class="nx">animationOptions</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">()</span>
+
+<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">loadContent</span><span class="p">,</span> <span class="nx">renderContent</span>
+</pre></div>
+
+<p><strong>4)</strong> Tell orc how to error</p>
+
+<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
+  <span class="nv">request = </span><span class="nx">loader</span><span class="p">.</span><span class="nx">get</span> <span class="nx">someDataUrl</span>
+  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">parseData</span><span class="p">)</span>
+  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'error'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">errorOn</span><span class="p">()</span>
+
+<span class="nv">renderContent = </span><span class="nf">-&gt;</span>
+  <span class="nx">animator</span><span class="p">.</span><span class="nx">do</span> <span class="nx">animationOptions</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">()</span>
+
+<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">loadContent</span><span class="p">,</span> <span class="nx">renderContent</span>
+</pre></div>
+
+<p><strong>5)</strong> Handle sequence error instead of erroring</p>
+
+<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
+  <span class="nv">request = </span><span class="nx">loader</span><span class="p">.</span><span class="nx">get</span> <span class="nx">someDataUrl</span>
+  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">parseData</span><span class="p">)</span>
+  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'error'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">errorOn</span><span class="p">()</span>
+
+<span class="nv">renderContent = </span><span class="nf">-&gt;</span>
+  <span class="nx">animator</span><span class="p">.</span><span class="nx">do</span> <span class="nx">animationOptions</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">()</span>
+
+<span class="nv">context = </span><span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">loadContent</span><span class="p">,</span> <span class="nx">renderContent</span>
+<span class="nv">context.handleError = </span><span class="nf">(error, context) -&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">"</span><span class="si">#{</span><span class="nx">error</span><span class="si">}</span><span class="s"> for </span><span class="si">#{</span><span class="nx">context</span><span class="si">}</span><span class="s">"</span>
+</pre></div>
+
+<p>That's it.</p>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/michaelavila">michaelavila</a></p>
