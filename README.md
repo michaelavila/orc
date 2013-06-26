@@ -1,67 +1,21 @@
 # orc
 
-Orc is designed with one particular goal in mind: to simplify how event driven
-programs are written. The approach orc takes in solving this problem is simpler
-and less obtrusive than the [alternatives](https://github.com/caolan/async).
-This is the interface to orc:
+Orc orchestrates the execution of lists of functions. This library will help you:
 
-```coffeescript
-# run a list of functions one after another
-# waiting between functions that require
-# some kind of asynchronous handling
-orc.sequence functions...
+1. clearly and concisely express asynchronous flow
+2. do so without interfering with your API
 
-# and in the functions that the sequence calls
-# you wrap the callbacks you want to wait for
-# with the orc waitFor decorator
-callback = orc.waitFor eventCallback
-```
+Get it from npm:
 
-## Why use it?
+    npm install orc
 
-Using orc should result in programs that avoid two common problems. The first
-is created when using the javascript event mechanism directly to express the
-asynchronous parts of your program. In this situation the problem is that the
-flow of the program jumps from event handler to event handler. This makes the
-program difficult to understand and work with. The second situation involves
-using something like caolan's [async](https://github.com/caolan/async).
-Unfortunately, implementations like this require you to introduce implementation
-details about how asynchrony is managed into the signature of the asynchronous
-methods.
+## Example
 
-So orc will help you:
-
-1. clearly and concisely express asynchronous flow control
-2. do so without interfering with the API of your module
-
-## How does it work?
-
-Orc is a simple beast. A methodical executor, orc orchestrates the execution of
-lists of functions. Orc has two execution strategies: one by one or all at once.
-These strategies can be carried out alone, combined, and at the same time. At
-any point during the execution orc can be asked to wait so that a more thorough
-execution can take place.
-
-Orc achieves all of this through the use of some simple data structures and an
-execution context. Execution contexts help orc keep track of what it is
-executing, the strategy being used to execute, and whether or not orc should
-wait before proceeding with the next execution. Orc uses a set of stacks of
-queues to ensure that each execution is carried out at the correct time and in
-the correct order.
-
-The condemned functions are placed into queues so that they can be executed in
-the correct order. Each execution context keeps track of a single queue. When
-a new execution is called for during another execution a new context is created
-and stacked on top of the current context. Orc only carries out executions from
-the top of the execution context stacks. When orc is asked to carry out multiple
-executions at the same time it simply places all of the execution stacks into a
-set. That is it: a set of stacks of queues and a context to keep track of extra
-information associated with each queue.
-
-## Working Example
-
-The following example loads some content, in this case http://google.com, and
-then renders that content in some way.
+The following example is typical: make an HTTP request for some content and
+render that content in some way once we receive it. Here we tell orc to
+sequence the two functions loadData and renderPage. In the loadData function we
+tell orc to waitFor a response and then to wait for the data to finish loading.
+The renderPage function just logs "now render the page" to the console.
 
 ```coffeescript
 orc = require('./lib/orc').orc
@@ -96,14 +50,9 @@ renderPage = ->
 orc.sequence loadData, renderPage
 ```
 
-Obviously the important thing here is that the content must complete loading
-before we proceed to render. I've included some sample code for making an http
-request in the `loadData` function and `renderPage` simply reports that it was
-called. I imagine you can fill in the details of what `renderPage` might go on
-to do.
-
-If you save this example to say `example.coffee` and then run the coffee
-interpreter on it you should see the following:
+If you run the example you will see that everything is called in the correct
+order. The renderPage function does not run until we have received all of the
+data from the loadData function. I've listed the output below:
 
 ```bash
 $ coffee example.coffee
@@ -118,6 +67,92 @@ The document has moved
 now render the page
 ```
 
-You can see that everything was executed in the correct order by inspecting the
-output. The data is loaded and then at the very end it is "rendered" (even
-though we aren't technically rendering it.)
+## How does it work?
+
+Everything begins with you telling orc to sequence some functions. Orc places
+these condemned functions into an ExecutionContext. The context lets orc keep
+the details of each execution separated. These details are things like the
+functions being executed and whether or not the execution is on hold for
+anything. At this point orc will begin executing, if it's not already.
+
+Orc can execute both dependent and independent sequences. A sequence is dependent
+when it requires another sequence to complete before it completes. Independent
+sequences are called next to eachother kinda like this:
+
+```coffeescript
+orc.sequence ...
+orc.sequence ...
+```
+
+Dependent sequences on the other hand look kinda like this:
+
+```coffeescript
+orc.sequence ->
+  orc.sequence ...
+```
+
+Whether or not one sequence depends on another sequence determines where orc
+puts the execution context. If the sequence is independent orc will add it
+alongside whatever other contexts exist. If the sequence is dependent orc
+will stack the context on top of whichever context it depends on. Orc then
+manages these dependencies by only executing from the context at the top of of
+each stack.
+
+## Getting Started
+
+1. Require orc
+
+```coffeescript
+orc = require('orc').orc
+```
+
+2. Sequence some functions
+
+```coffeescript
+loadContent = ->
+bar = ->
+
+orc.sequence foo, bar
+```
+
+3. Wait for some stuff
+
+```coffeescript
+loadContent = ->
+  request = loader.get someDataUrl
+  request.on 'data', orc.waitFor(parseData)
+
+renderContent = ->
+  animator.do animationOptions orc.waitFor()
+
+orc.sequence loadContent, renderContent
+```
+
+4. Tell orc how to error
+
+```coffeescript
+loadContent = ->
+  request = loader.get someDataUrl
+  request.on 'data', orc.waitFor(parseData)
+  request.on 'error', orc.errorOn()
+
+renderContent = ->
+  animator.do animationOptions orc.waitFor()
+
+orc.sequence loadContent, renderContent
+```
+
+5. Handle sequence error instead of erroring
+
+```coffeescript
+loadContent = ->
+  request = loader.get someDataUrl
+  request.on 'data', orc.waitFor(parseData)
+  request.on 'error', orc.errorOn()
+
+renderContent = ->
+  animator.do animationOptions orc.waitFor()
+
+context = orc.sequence loadContent, renderContent
+context.handleError = (error, context) -> console.log "#{error} for #{context}"
+```
