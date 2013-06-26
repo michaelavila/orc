@@ -5,11 +5,74 @@ Orc orchestrates the execution of lists of functions. This library will help you
 1. clearly and concisely express asynchronous flow
 2. do so without interfering with your API
 
-Get it from npm:
+## Getting Started
 
-    npm install orc
+**1)** Get orc from npm
 
-## Example
+```bash
+npm install orc
+```
+
+**2)** Require orc
+
+```coffeescript
+orc = require('orc').orc
+```
+
+**3)** Sequence some functions
+
+```coffeescript
+loadContent = ->
+bar = ->
+
+orc.sequence foo, bar
+```
+
+**4)** Wait for some stuff
+
+```coffeescript
+loadContent = ->
+  request = loader.get someDataUrl
+  request.on 'data', orc.waitFor(parseData)
+
+renderContent = ->
+  animator.do animationOptions orc.waitFor()
+
+orc.sequence loadContent, renderContent
+```
+
+**5)** Tell orc how to error
+
+```coffeescript
+loadContent = ->
+  request = loader.get someDataUrl
+  request.on 'data', orc.waitFor(parseData)
+  request.on 'error', orc.errorOn()
+
+renderContent = ->
+  animator.do animationOptions orc.waitFor()
+
+orc.sequence loadContent, renderContent
+```
+
+**6)** Handle sequence error instead of erroring
+
+```coffeescript
+loadContent = ->
+  request = loader.get someDataUrl
+  request.on 'data', orc.waitFor(parseData)
+  request.on 'error', orc.errorOn()
+
+renderContent = ->
+  animator.do animationOptions orc.waitFor()
+
+context = orc.sequence loadContent, renderContent
+context.handleError = (error, context) -> console.log "#{error} for #{context}"
+```
+
+That's it.
+
+## Working Example
 
 The following example is typical: make an HTTP request for some content and
 render that content in some way once we receive it. Here we tell orc to
@@ -115,64 +178,3 @@ context that was saved earlier. This ensures that any waitFor calls made during
 the callback will be routed to the correct context. At the very end, once it
 has executed the callback, the waitFor function will call done on the correct
 context.
-
-## Getting Started
-
-**1)** Require orc
-
-```coffeescript
-orc = require('orc').orc
-```
-
-**2)** Sequence some functions
-
-```coffeescript
-loadContent = ->
-bar = ->
-
-orc.sequence foo, bar
-```
-
-**3)** Wait for some stuff
-
-```coffeescript
-loadContent = ->
-  request = loader.get someDataUrl
-  request.on 'data', orc.waitFor(parseData)
-
-renderContent = ->
-  animator.do animationOptions orc.waitFor()
-
-orc.sequence loadContent, renderContent
-```
-
-**4)** Tell orc how to error
-
-```coffeescript
-loadContent = ->
-  request = loader.get someDataUrl
-  request.on 'data', orc.waitFor(parseData)
-  request.on 'error', orc.errorOn()
-
-renderContent = ->
-  animator.do animationOptions orc.waitFor()
-
-orc.sequence loadContent, renderContent
-```
-
-**5)** Handle sequence error instead of erroring
-
-```coffeescript
-loadContent = ->
-  request = loader.get someDataUrl
-  request.on 'data', orc.waitFor(parseData)
-  request.on 'error', orc.errorOn()
-
-renderContent = ->
-  animator.do animationOptions orc.waitFor()
-
-context = orc.sequence loadContent, renderContent
-context.handleError = (error, context) -> console.log "#{error} for #{context}"
-```
-
-That's it.
