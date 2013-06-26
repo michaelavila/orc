@@ -76,19 +76,20 @@ functions being executed and whether or not the execution is on hold for
 anything. At this point orc will begin executing, if it's not already.
 
 Orc can execute both dependent and independent sequences. A sequence is dependent
-when it requires another sequence to complete before it completes. Independent
+when it requires another sequence to complete before it completes. Dependent
 sequences are called next to eachother kinda like this:
-
-```coffeescript
-orc.sequence ...
-orc.sequence ...
-```
-
-Dependent sequences on the other hand look kinda like this:
 
 ```coffeescript
 orc.sequence ->
   orc.sequence ...
+```
+
+Independent sequences on the other hand look kinda like this:
+
+
+```coffeescript
+orc.sequence ...
+orc.sequence ...
 ```
 
 Whether or not one sequence depends on another sequence determines where orc
