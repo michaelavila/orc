@@ -94,7 +94,7 @@ orc.sequence ...
 Whether or not one sequence depends on another sequence determines where orc
 puts the execution context. If the sequence is independent orc will add it
 alongside whatever other contexts exist. If the sequence is dependent orc
-will stack the context on top of whichever context it depends on. Orc then
+will stack the context on top of whichever context depends on it. Orc then
 manages these dependencies by only executing from the context at the top of of
 each stack.
 
