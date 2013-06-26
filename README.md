@@ -100,13 +100,13 @@ each stack.
 
 ## Getting Started
 
-1. Require orc
+**1)** Require orc
 
 ```coffeescript
 orc = require('orc').orc
 ```
 
-2. Sequence some functions
+**2)** Sequence some functions
 
 ```coffeescript
 loadContent = ->
@@ -115,7 +115,7 @@ bar = ->
 orc.sequence foo, bar
 ```
 
-3. Wait for some stuff
+**3)** Wait for some stuff
 
 ```coffeescript
 loadContent = ->
@@ -128,7 +128,7 @@ renderContent = ->
 orc.sequence loadContent, renderContent
 ```
 
-4. Tell orc how to error
+**4)** Tell orc how to error
 
 ```coffeescript
 loadContent = ->
@@ -142,7 +142,7 @@ renderContent = ->
 orc.sequence loadContent, renderContent
 ```
 
-5. Handle sequence error instead of erroring
+**5)** Handle sequence error instead of erroring
 
 ```coffeescript
 loadContent = ->
