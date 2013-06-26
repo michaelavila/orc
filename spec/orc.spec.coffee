@@ -29,6 +29,14 @@ describe 'ExecutionContext', ->
 
 describe 'Orc', ->
     describe 'waitFor', ->
+        it 'does not require a callback argument', ->
+            callback = null
+
+            orc.sequence ->
+                callback = orc.waitFor()
+
+            expect(callback).not.toThrow()
+
         it 'waits for callback to be called', ->
             log = ''
             orcCallback = null

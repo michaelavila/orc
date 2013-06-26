@@ -20,21 +20,22 @@ class Orc
         # return the context just in case it is needed for anything
         context
 
-    waitFor: (callback) ->
+    waitFor: (callback) =>
         # first wait, then save the context and contextStack in this scope so
         # that they can be used to execute the decorated callback later
         context = @wait()
         contextStack = @currentStack
         =>
-            # set the current contextStack so that calls to orc.waitFor made by
-            # the callback will be routed to the correct context
-            @currentStack = contextStack
-            callback arguments...
+            if callback?
+                # set the current contextStack so that calls to orc.waitFor made by
+                # the callback will be routed to the correct context
+                @currentStack = contextStack
+                callback arguments...
+                # we don't need @currentStack for the time being
+                @currentStack = null
             # this done is required because of the @wait line at the beginning
             # of the decorator function
             context.done()
-            # we don't need @currentStack for the time being
-            @currentStack = null
 
     execute: =>
         while @canExecute()
