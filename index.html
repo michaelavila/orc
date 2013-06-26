@@ -35,14 +35,71 @@
 
 <ol>
 <li>clearly and concisely express asynchronous flow</li>
-<li>do so without interfering with your API</li>
-</ol><p>Get it from npm:</p>
+<li>do so without polluting your API</li>
+</ol><h2>
+<a name="getting-started" class="anchor" href="#getting-started"><span class="octicon octicon-link"></span></a>Getting Started</h2>
 
-<pre><code>npm install orc
-</code></pre>
+<p><strong>1)</strong> Get orc from npm</p>
+
+<div class="highlight"><pre>npm install orc
+</pre></div>
+
+<p><strong>2)</strong> Require orc</p>
+
+<div class="highlight"><pre><span class="nv">orc = </span><span class="nx">require</span><span class="p">(</span><span class="s">'orc'</span><span class="p">).</span><span class="nx">orc</span>
+</pre></div>
+
+<p><strong>3)</strong> Sequence some functions</p>
+
+<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
+<span class="nv">bar = </span><span class="nf">-&gt;</span>
+
+<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">foo</span><span class="p">,</span> <span class="nx">bar</span>
+</pre></div>
+
+<p><strong>4)</strong> Wait for some stuff</p>
+
+<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
+  <span class="nv">request = </span><span class="nx">loader</span><span class="p">.</span><span class="nx">get</span> <span class="nx">someDataUrl</span>
+  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">parseData</span><span class="p">)</span>
+
+<span class="nv">renderContent = </span><span class="nf">-&gt;</span>
+  <span class="nx">animator</span><span class="p">.</span><span class="nx">do</span> <span class="nx">animationOptions</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">()</span>
+
+<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">loadContent</span><span class="p">,</span> <span class="nx">renderContent</span>
+</pre></div>
+
+<p><strong>5)</strong> Tell orc how to error</p>
+
+<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
+  <span class="nv">request = </span><span class="nx">loader</span><span class="p">.</span><span class="nx">get</span> <span class="nx">someDataUrl</span>
+  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">parseData</span><span class="p">)</span>
+  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'error'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">errorOn</span><span class="p">()</span>
+
+<span class="nv">renderContent = </span><span class="nf">-&gt;</span>
+  <span class="nx">animator</span><span class="p">.</span><span class="nx">do</span> <span class="nx">animationOptions</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">()</span>
+
+<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">loadContent</span><span class="p">,</span> <span class="nx">renderContent</span>
+</pre></div>
+
+<p><strong>6)</strong> Handle sequence error instead of erroring</p>
+
+<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
+  <span class="nv">request = </span><span class="nx">loader</span><span class="p">.</span><span class="nx">get</span> <span class="nx">someDataUrl</span>
+  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">parseData</span><span class="p">)</span>
+  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'error'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">errorOn</span><span class="p">()</span>
+
+<span class="nv">renderContent = </span><span class="nf">-&gt;</span>
+  <span class="nx">animator</span><span class="p">.</span><span class="nx">do</span> <span class="nx">animationOptions</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">()</span>
+
+<span class="nv">context = </span><span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">loadContent</span><span class="p">,</span> <span class="nx">renderContent</span>
+<span class="nv">context.handleError = </span><span class="nf">(error, context) -&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">"</span><span class="si">#{</span><span class="nx">error</span><span class="si">}</span><span class="s"> for </span><span class="si">#{</span><span class="nx">context</span><span class="si">}</span><span class="s">"</span>
+</pre></div>
+
+<p>That's it.</p>
 
 <h2>
-<a name="example" class="anchor" href="#example"><span class="octicon octicon-link"></span></a>Example</h2>
+<a name="working-example" class="anchor" href="#working-example"><span class="octicon octicon-link"></span></a>Working Example</h2>
 
 <p>The following example is typical: make an HTTP request for some content and
 render that content in some way once we receive it. Here we tell orc to
@@ -147,63 +204,6 @@ context that was saved earlier. This ensures that any waitFor calls made during
 the callback will be routed to the correct context. At the very end, once it
 has executed the callback, the waitFor function will call done on the correct
 context.</p>
-
-<h2>
-<a name="getting-started" class="anchor" href="#getting-started"><span class="octicon octicon-link"></span></a>Getting Started</h2>
-
-<p><strong>1)</strong> Require orc</p>
-
-<div class="highlight"><pre><span class="nv">orc = </span><span class="nx">require</span><span class="p">(</span><span class="s">'orc'</span><span class="p">).</span><span class="nx">orc</span>
-</pre></div>
-
-<p><strong>2)</strong> Sequence some functions</p>
-
-<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
-<span class="nv">bar = </span><span class="nf">-&gt;</span>
-
-<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">foo</span><span class="p">,</span> <span class="nx">bar</span>
-</pre></div>
-
-<p><strong>3)</strong> Wait for some stuff</p>
-
-<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
-  <span class="nv">request = </span><span class="nx">loader</span><span class="p">.</span><span class="nx">get</span> <span class="nx">someDataUrl</span>
-  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">parseData</span><span class="p">)</span>
-
-<span class="nv">renderContent = </span><span class="nf">-&gt;</span>
-  <span class="nx">animator</span><span class="p">.</span><span class="nx">do</span> <span class="nx">animationOptions</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">()</span>
-
-<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">loadContent</span><span class="p">,</span> <span class="nx">renderContent</span>
-</pre></div>
-
-<p><strong>4)</strong> Tell orc how to error</p>
-
-<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
-  <span class="nv">request = </span><span class="nx">loader</span><span class="p">.</span><span class="nx">get</span> <span class="nx">someDataUrl</span>
-  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">parseData</span><span class="p">)</span>
-  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'error'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">errorOn</span><span class="p">()</span>
-
-<span class="nv">renderContent = </span><span class="nf">-&gt;</span>
-  <span class="nx">animator</span><span class="p">.</span><span class="nx">do</span> <span class="nx">animationOptions</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">()</span>
-
-<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">loadContent</span><span class="p">,</span> <span class="nx">renderContent</span>
-</pre></div>
-
-<p><strong>5)</strong> Handle sequence error instead of erroring</p>
-
-<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
-  <span class="nv">request = </span><span class="nx">loader</span><span class="p">.</span><span class="nx">get</span> <span class="nx">someDataUrl</span>
-  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">parseData</span><span class="p">)</span>
-  <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'error'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">errorOn</span><span class="p">()</span>
-
-<span class="nv">renderContent = </span><span class="nf">-&gt;</span>
-  <span class="nx">animator</span><span class="p">.</span><span class="nx">do</span> <span class="nx">animationOptions</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">()</span>
-
-<span class="nv">context = </span><span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">loadContent</span><span class="p">,</span> <span class="nx">renderContent</span>
-<span class="nv">context.handleError = </span><span class="nf">(error, context) -&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">"</span><span class="si">#{</span><span class="nx">error</span><span class="si">}</span><span class="s"> for </span><span class="si">#{</span><span class="nx">context</span><span class="si">}</span><span class="s">"</span>
-</pre></div>
-
-<p>That's it.</p>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/michaelavila">michaelavila</a></p>
