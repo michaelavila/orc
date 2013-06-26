@@ -80,8 +80,10 @@ loadData = ->
         handleData = (chunk) ->
             console.log "data loaded #{chunk}"
 
+        response.on 'data', handleData
+
         # here we wait as well
-        response.on 'data', orc.waitFor(handleData)
+        response.on 'end', orc.waitFor()
 
     # here we wait
     http.get options, orc.waitFor(handleHTTPGet)
