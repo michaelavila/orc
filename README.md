@@ -69,6 +69,12 @@ now render the page
 
 ## How does it work?
 
+Orc does as much of the bookkeeping as it can. You should almost never need
+anything more than the sequence, waitFor, and errorOn functions. Like anything
+else the more you know about orc the easier it is to work with.
+
+### sequence
+
 Everything begins with you telling orc to sequence some functions. Orc places
 these condemned functions into an ExecutionContext. The context lets orc keep
 the details of each execution separated. These details are things like the
@@ -97,6 +103,18 @@ alongside whatever other contexts exist. If the sequence is dependent orc
 will stack the context on top of whichever context depends on it. Orc then
 manages these dependencies by only executing from the context at the top of of
 each stack.
+
+### waitFor
+
+The waitFor decorator is simple. First it saves the current context so that
+later on it can determine which context the decorated function belongs to. Then
+it returns a function that wraps the callback it was provided.
+
+The decorated function that waitFor returns will set the current context to the
+context that was saved earlier. This ensures that any waitFor calls made during
+the callback will be routed to the correct context. At the very end, once it
+has executed the callback, the waitFor function will call done on the correct
+context.
 
 ## Getting Started
 
