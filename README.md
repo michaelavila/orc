@@ -3,7 +3,7 @@
 Orc orchestrates the execution of lists of functions. This library will help you:
 
 1. clearly and concisely express asynchronous flow
-2. do so without interfering with your API
+2. do so without polluting your API
 
 ## Getting Started
 
