@@ -7,10 +7,14 @@ Orc orchestrates the execution of lists of functions. This library will help you
 
 ## Getting Started
 
-**1)** Get orc from npm
+**1)** Get orc from npm or bower
 
 ```bash
+# if you're using with node install with npm
 npm install orc
+
+# if you're using in the browser install with bower
+bower install orc
 ```
 
 **2)** Require orc
