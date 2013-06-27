@@ -6,5 +6,9 @@
     "**/.*",
     "node_modules",
     "components"
-  ]
+  ],
+  "devDependencies": {
+    "jasmine-node": "~1.8.1",
+    "coffeelint": "0.5.6"
+  }
 }
