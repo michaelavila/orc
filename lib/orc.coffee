@@ -100,6 +100,7 @@ Array::last = ->
 Array::remove = (object) ->
   @splice @indexOf(object), 1
 
-module.exports.Orc = Orc
-module.exports.ExecutionContext = ExecutionContext
-module.exports.orc = new Orc()
+exports = exports ? @
+exports.Orc = Orc
+exports.ExecutionContext = ExecutionContext
+exports.orc = new Orc()
