@@ -1,3 +1,10 @@
+# indexOf polyfill
+unless Array::indexOf
+  Array::indexOf = (item) ->
+    for prop, i in @
+      return i if item is prop
+    return -1
+
 class Orc
   constructor: ->
     @stacks = []
