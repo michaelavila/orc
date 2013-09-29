@@ -3,40 +3,119 @@ ExecutionContext = require('orc').ExecutionContext
 OrcError = require('orc').OrcError
 
 describe 'ExecutionContext', ->
-  it 'can wait for many things', ->
-    context = new ExecutionContext()
-    context.readyCallback = ->
+  beforeEach ->
+    @context = new ExecutionContext()
+    sinon.stub @context, 'readyCallback'
 
-    context.wait()
-    context.wait()
-    expect(context.waiting()).to.be.true
+  it 'should be waiting initially', ->
+    expect(@context.waiting()).to.be.false
 
-    context.done()
-    expect(context.waiting()).to.be.true
+  describe '#waiting', ->
+    it 'should be false when there are no holds', ->
+      @context.holds = 0
 
-    context.done()
-    expect(context.waiting()).to.be.false
+      expect(@context.waiting()).to.be.false
 
-  it 'handles too many dones() gracefully', ->
-    context = new ExecutionContext()
-    context.readyCallback = ->
+    it 'should be true when there are holds', ->
+      @context.holds = 1
 
-    context.done()
-    context.done()
-    expect(context.waiting()).to.be.false
+      expect(@context.waiting()).to.be.true
 
-    context.wait()
-    expect(context.waiting()).to.be.true
+  describe '#wait', ->
+    it 'should cause context to be waiting', ->
+      @context.wait()
 
-  describe 'handleError', ->
-    it 'throws OrcError', ->
-      context = new ExecutionContext()
-      expect(context.handleError).to.throw OrcError
+      expect(@context.waiting()).to.be.true
 
-  describe 'fail', ->
-    it 'throws OrcError', ->
-      context = new ExecutionContext()
-      expect(context.fail).to.throw OrcError
+  describe '#done', ->
+    context 'when not waiting', ->
+      it 'should not do anything', ->
+        @context.done()
+
+        expect(@context.waiting()).to.be.false
+
+      it 'should not call readyCallback', ->
+        @context.done()
+
+        expect(@context.readyCallback).to.not.have.been.called
+
+    context 'when waiting', ->
+      beforeEach ->
+        @context.wait()
+
+      it 'should cause context to no longer be waiting', ->
+        @context.done()
+
+        expect(@context.waiting()).to.be.false
+
+      it 'should call readyCallback', ->
+        @context.done()
+
+        expect(@context.readyCallback).to.have.been.called
+
+      context 'for many things', ->
+        beforeEach ->
+          @context.wait()
+          
+        it 'should require multiple dones', ->
+          @context.done()
+          expect(@context.waiting()).to.be.true
+
+          @context.done()
+          expect(@context.waiting()).to.be.false
+
+        it 'should not call readyCallback', ->
+          @context.done()
+          expect(@context.readyCallback).to.not.have.been.called
+
+  describe '#canExecute', ->
+    it 'should be false when empty', ->
+      sinon.stub(@context.functions, 'isEmpty').returns true
+
+      expect(@context.canExecute()).to.be.false
+
+    it 'should be true when not empty', ->
+      sinon.stub(@context.functions, 'isEmpty').returns false
+
+      expect(@context.canExecute()).to.be.true
+
+  describe '#executeNext', ->
+    beforeEach ->
+      @step = sinon.stub()
+      @context.functions = [@step]
+
+    it 'should execute the next function', ->
+      @context.executeNext()
+
+      expect(@step).to.have.been.called
+
+    context 'when not waiting', ->
+      it 'should not set the readyCallback', ->
+        sinon.stub(@context, 'waiting').returns false
+
+        @context.executeNext @step
+
+        expect(@context.readyCallback).to.not.equal @step
+
+    context 'when waiting', ->
+      it 'should set the readyCallback', ->
+        sinon.stub(@context, 'waiting').returns true
+
+        @context.executeNext @step
+
+        expect(@context.readyCallback).to.equal @step
+
+  describe '#fail', ->
+    it 'should throw an OrcError', ->
+      expect(@context.fail).to.throw OrcError
+
+  describe '#handleError', ->
+    it 'should call fail', ->
+      sinon.stub @context, 'fail'
+
+      @context.handleError()
+
+      expect(@context.fail).to.have.been.called
 
 describe 'Orc', ->
   describe 'errorOn', ->

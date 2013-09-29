@@ -61,7 +61,7 @@ class Orc
       return true unless contextStack.isEmpty() or contextStack.last().waiting()
 
 class ExecutionContext
-  constructor: (@functions) ->
+  constructor: (@functions=[]) ->
     @holds = 0
 
   waiting: ->
@@ -88,6 +88,8 @@ class ExecutionContext
 
   fail: ->
     throw new OrcError()
+
+  readyCallback: ->
 
 class OrcError extends Error
 
