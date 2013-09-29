@@ -1,6 +1,6 @@
-orc = require('../lib/orc').orc
-ExecutionContext = require('../lib/orc').ExecutionContext
-OrcError = require('../lib/orc').OrcError
+orc = require('orc').orc
+ExecutionContext = require('orc').ExecutionContext
+OrcError = require('orc').OrcError
 
 describe 'ExecutionContext', ->
   it 'can wait for many things', ->
@@ -9,13 +9,13 @@ describe 'ExecutionContext', ->
 
     context.wait()
     context.wait()
-    expect(context.waiting()).toBe true
+    expect(context.waiting()).to.be.true
 
     context.done()
-    expect(context.waiting()).toBe true
+    expect(context.waiting()).to.be.true
 
     context.done()
-    expect(context.waiting()).toBe false
+    expect(context.waiting()).to.be.false
 
   it 'handles too many dones() gracefully', ->
     context = new ExecutionContext()
@@ -23,34 +23,34 @@ describe 'ExecutionContext', ->
 
     context.done()
     context.done()
-    expect(context.waiting()).toBe false
+    expect(context.waiting()).to.be.false
 
     context.wait()
-    expect(context.waiting()).toBe true
+    expect(context.waiting()).to.be.true
 
   describe 'handleError', ->
     it 'throws OrcError', ->
       context = new ExecutionContext()
-      expect(context.handleError).toThrow OrcError
+      expect(context.handleError).to.throw OrcError
 
   describe 'fail', ->
     it 'throws OrcError', ->
       context = new ExecutionContext()
-      expect(context.fail).toThrow OrcError
+      expect(context.fail).to.throw OrcError
 
 describe 'Orc', ->
   describe 'errorOn', ->
     it 'returns a callback that throws an OrcError', ->
       orc.sequence ->
-        expect(orc.errorOn()).toThrow OrcError
+        expect(orc.errorOn()).to.throw OrcError
 
     it 'causes sequence to error', ->
       log = ''
 
       expect(
         orc.sequence.bind(null, orc.errorOn(), -> log += 'second function')
-      ).toThrow OrcError
-      expect(log).toBe ''
+      ).to.throw OrcError
+      expect(log).to.equal ''
 
     it 'asynchronously calls handleError on the correct context', ->
       callback = null
@@ -61,7 +61,7 @@ describe 'Orc', ->
       context.handleError = -> log += 'handleError'
 
       callback()
-      expect(log).toBe 'handleError'
+      expect(log).to.equal 'handleError'
 
     it 'gives handleError the error on the context', ->
       callback = null
@@ -70,8 +70,8 @@ describe 'Orc', ->
 
       log = ''
       context.handleError = (errorArg, contextArg) ->
-        expect(errorArg).not.toBe null
-        expect(contextArg).toBe context
+        expect(errorArg).not.to.equal null
+        expect(contextArg).to.equal context
 
       callback()
 
@@ -82,7 +82,7 @@ describe 'Orc', ->
       orc.sequence ->
         callback = orc.waitFor()
 
-      expect(callback).not.toThrow()
+      expect(callback).not.to.throw()
 
     it 'waits for callback to be called', ->
       log = ''
@@ -93,10 +93,10 @@ describe 'Orc', ->
       ), (->
         log += 'end of sequence'
       )
-      expect(log).toBe ''
+      expect(log).to.equal ''
 
       orcCallback()
-      expect(log).toBe 'callback end of sequence'
+      expect(log).to.equal 'callback end of sequence'
 
     it 'passes on the arguments it receives', ->
       log = ''
@@ -107,10 +107,10 @@ describe 'Orc', ->
       ), (->
         log += 'end of sequence'
       )
-      expect(log).toBe ''
+      expect(log).to.equal ''
 
       orcCallback('testarg')
-      expect(log).toBe 'callback testarg end of sequence'
+      expect(log).to.equal 'callback testarg end of sequence'
 
     it 'can be nested in other waitFor callbacks', ->
       log = ''
@@ -125,13 +125,13 @@ describe 'Orc', ->
       ), (->
         log += 'end of sequence'
       )
-      expect(log).toBe ''
+      expect(log).to.equal ''
 
       orcOuterCallback()
-      expect(log).toBe 'callback '
+      expect(log).to.equal 'callback '
 
       orcInnerCallback()
-      expect(log).toBe 'callback inner callback end of sequence'
+      expect(log).to.equal 'callback inner callback end of sequence'
 
   describe 'sequence', ->
     it 'works with non-async functions', ->
@@ -141,7 +141,7 @@ describe 'Orc', ->
 
       orc.sequence a, b
 
-      expect(log).toBe 'ab'
+      expect(log).to.equal 'ab'
 
     it 'works with async functions', ->
       log = ''
@@ -149,10 +149,10 @@ describe 'Orc', ->
       b = -> log += 'b'
            
       context = orc.sequence a, b
-      expect(log).toBe 'a'
+      expect(log).to.equal 'a'
           
       context.done()
-      expect(log).toBe 'ab'
+      expect(log).to.equal 'ab'
 
     it 'can run several simulatenously', ->
       log1 = ''
@@ -164,15 +164,15 @@ describe 'Orc', ->
       d = -> log2 += 'd'
            
       context1 = orc.sequence a, b
-      expect(log1).toBe 'a'
+      expect(log1).to.equal 'a'
       context2 = orc.sequence c, d
-      expect(log2).toBe 'c'
+      expect(log2).to.equal 'c'
 
       context2.done()
-      expect(log2).toBe 'cd'
+      expect(log2).to.equal 'cd'
 
       context1.done()
-      expect(log1).toBe 'ab'
+      expect(log1).to.equal 'ab'
 
     it 'can nest non-async', ->
       log = ''
@@ -182,7 +182,7 @@ describe 'Orc', ->
 
       orc.sequence a, b, c
           
-      expect(log).toBe 'abbc'
+      expect(log).to.equal 'abbc'
 
     it 'can nest async', ->
       inner_context = null
@@ -197,13 +197,13 @@ describe 'Orc', ->
       c = -> log += 'c'
 
       context = orc.sequence a, b, c
-      expect(log).toBe 'a'
+      expect(log).to.equal 'a'
           
       context.done()
-      expect(log).toBe 'ab'
+      expect(log).to.equal 'ab'
 
       inner_context.done()
-      expect(log).toBe 'abbc'
+      expect(log).to.equal 'abbc'
 
     it 'properly handles a sequence that ends waiting without functions', ->
       log = ''
@@ -215,7 +215,7 @@ describe 'Orc', ->
         log += 'b'
       )
 
-      expect(log).toBe 'a'
+      expect(log).to.equal 'a'
 
       inner_context.done()
-      expect(log).toBe 'ab'
+      expect(log).to.equal 'ab'
