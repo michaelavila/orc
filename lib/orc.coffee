@@ -1,4 +1,6 @@
-class Orc
+exports = exports ? @
+
+exports.Orc = class Orc
   constructor: ->
     @stacks = []
     @currentStack = null
@@ -64,7 +66,7 @@ class Orc
       return true unless contextStack.isEmpty() or contextStack.last().waiting()
     false
 
-class ExecutionContext
+exports.ExecutionContext = class ExecutionContext
   constructor: (functions=[]) ->
     @functions = functions
     @holds = 0
@@ -114,7 +116,4 @@ Array::last = ->
 Array::remove = (object) ->
   @splice @indexOf(object), 1
 
-exports = exports ? @
-exports.Orc = Orc
-exports.ExecutionContext = ExecutionContext
-exports.orc = new Orc()
+exports.orc = new Orc
