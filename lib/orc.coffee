@@ -47,21 +47,26 @@ class Orc
   execute: =>
     while @canExecute()
       for @currentStack in @stacks
-        context = @currentStack.last()
-        context.executeNext @execute if context.canExecute()
-        @currentStack.pop() unless context.waiting() or context.canExecute()
+        @executeNext()
         if @currentStack.isEmpty()
           @stacks.remove @currentStack
           break
 
     @currentStack = null
 
+  executeNext: ->
+    context = @currentStack.last()
+    context.executeNext @execute if context.canExecute()
+    @currentStack.pop() unless context.waiting() or context.canExecute()
+
   canExecute: ->
     for contextStack in @stacks
       return true unless contextStack.isEmpty() or contextStack.last().waiting()
+    false
 
 class ExecutionContext
-  constructor: (@functions=[]) ->
+  constructor: (functions=[]) ->
+    @functions = functions
     @holds = 0
 
   waiting: ->

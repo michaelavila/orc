@@ -1,3 +1,4 @@
+orclib = require 'orc'
 orc = require('orc').orc
 ExecutionContext = require('orc').ExecutionContext
 OrcError = require('orc').OrcError
@@ -7,7 +8,7 @@ describe 'ExecutionContext', ->
     @context = new ExecutionContext()
     sinon.stub @context, 'readyCallback'
 
-  it 'should be waiting initially', ->
+  it 'should not be waiting initially', ->
     expect(@context.waiting()).to.be.false
 
   describe '#waiting', ->
@@ -118,183 +119,234 @@ describe 'ExecutionContext', ->
       expect(@context.fail).to.have.been.called
 
 describe 'Orc', ->
-  describe 'errorOn', ->
-    it 'returns a callback that throws an OrcError', ->
-      orc.sequence ->
-        expect(orc.errorOn()).to.throw OrcError
+  beforeEach ->
+    @orc = new orclib.Orc()
 
-    it 'causes sequence to error', ->
-      log = ''
+  describe '#sequence', ->
+    it 'should return an ExecutionContext', ->
+      context = @orc.sequence()
 
-      expect(
-        orc.sequence.bind(null, orc.errorOn(), -> log += 'second function')
-      ).to.throw OrcError
-      expect(log).to.equal ''
+      expect(context).to.be.instanceof ExecutionContext
 
-    it 'asynchronously calls handleError on the correct context', ->
-      callback = null
-      context = orc.sequence ->
-        callback = orc.waitFor orc.errorOn()
+    it 'should give the functions to the context', ->
+      step = ->
+      # this causes orc to not execute the sequence so that we
+      # can write assertions against context.functions
+      @orc.currentStack = []
 
-      log = ''
-      context.handleError = -> log += 'handleError'
+      context = @orc.sequence step
 
-      callback()
-      expect(log).to.equal 'handleError'
+      expect(context.functions).to.have.members [step]
 
-    it 'gives handleError the error on the context', ->
-      callback = null
-      context = orc.sequence ->
-        callback = orc.waitFor orc.errorOn()
+    context 'when currently executing', ->
+      it 'should add context to currentStack', ->
+        @orc.currentStack = []
+        sinon.stub @orc.currentStack, 'push'
 
-      log = ''
-      context.handleError = (errorArg, contextArg) ->
-        expect(errorArg).not.to.equal null
-        expect(contextArg).to.equal context
+        @orc.sequence()
 
-      callback()
+        expect(@orc.currentStack.push).to.have.been.called
 
-  describe 'waitFor', ->
-    it 'does not require a callback argument', ->
-      callback = null
+    context 'when not currently executing', ->
+      it 'should add a new stack containing context', ->
+        sinon.stub @orc.stacks, 'push'
 
-      orc.sequence ->
-        callback = orc.waitFor()
+        @orc.sequence()
 
-      expect(callback).not.to.throw()
+        expect(@orc.stacks.push).to.have.been.called
 
-    it 'waits for callback to be called', ->
-      log = ''
-      orcCallback = null
+      it 'should begin executing', ->
+        sinon.stub @orc, 'execute'
 
-      orc.sequence (->
-        orcCallback = orc.waitFor(-> log += 'callback ')
-      ), (->
-        log += 'end of sequence'
-      )
-      expect(log).to.equal ''
+        @orc.sequence ->
 
-      orcCallback()
-      expect(log).to.equal 'callback end of sequence'
+        expect(@orc.execute).to.have.been.called
 
-    it 'passes on the arguments it receives', ->
-      log = ''
-      orcCallback = null
+  describe '#waitFor', ->
+    beforeEach ->
+      @orc.currentStack = []
+      @context = {wait: (->), done: (->), handleError: (->)}
+      sinon.stub(@context, 'wait').returns @context
+      sinon.stub(@orc.currentStack, 'last').returns @context
 
-      orc.sequence (->
-        orcCallback = orc.waitFor((arg) -> log += "callback #{arg} ")
-      ), (->
-        log += 'end of sequence'
-      )
-      expect(log).to.equal ''
+    it 'should tell the current context to wait', ->
+      @orc.waitFor()
 
-      orcCallback('testarg')
-      expect(log).to.equal 'callback testarg end of sequence'
+      expect(@context.wait).to.have.been.called
 
-    it 'can be nested in other waitFor callbacks', ->
-      log = ''
-      orcOuterCallback = null
-      orcInnerCallback = null
+    it 'should return a callback', ->
+      callback = @orc.waitFor()
 
-      orc.sequence (->
-        orcOuterCallback = orc.waitFor(->
-          log += 'callback '
-          orcInnerCallback = orc.waitFor -> log += 'inner callback '
-        )
-      ), (->
-        log += 'end of sequence'
-      )
-      expect(log).to.equal ''
+      expect(callback).to.be.a 'function'
 
-      orcOuterCallback()
-      expect(log).to.equal 'callback '
+    context 'the returned callback', ->
+      it 'should call context.done', ->
+        sinon.stub @context, 'done'
+        callback = @orc.waitFor()
 
-      orcInnerCallback()
-      expect(log).to.equal 'callback inner callback end of sequence'
+        callback()
 
-  describe 'sequence', ->
-    it 'works with non-async functions', ->
-      log = ''
-      a = -> log += 'a'
-      b = -> log += 'b'
+        expect(@context.done).to.have.been.called
 
-      orc.sequence a, b
+      context 'with user defined callback', ->
+        beforeEach ->
+          @userCallback = sinon.stub()
+          @callback = @orc.waitFor @userCallback
 
-      expect(log).to.equal 'ab'
+        it 'should call the user defined callback', ->
+          @callback()
 
-    it 'works with async functions', ->
-      log = ''
-      a = -> log += 'a'; orc.waitFor()
-      b = -> log += 'b'
-           
-      context = orc.sequence a, b
-      expect(log).to.equal 'a'
-          
-      context.done()
-      expect(log).to.equal 'ab'
+          expect(@userCallback).to.have.been.called
 
-    it 'can run several simulatenously', ->
-      log1 = ''
-      a = -> log1 += 'a'; orc.waitFor()
-      b = -> log1 += 'b'
+        it 'should pass on the arguments to the user defined callback', ->
+          @callback 'an argument to test'
 
-      log2 = ''
-      c = -> log2 += 'c'; orc.waitFor()
-      d = -> log2 += 'd'
-           
-      context1 = orc.sequence a, b
-      expect(log1).to.equal 'a'
-      context2 = orc.sequence c, d
-      expect(log2).to.equal 'c'
+          expect(@userCallback).to.have.been.calledWith 'an argument to test'
 
-      context2.done()
-      expect(log2).to.equal 'cd'
+        it 'should leave currentStack null when it is done', ->
+          @callback()
 
-      context1.done()
-      expect(log1).to.equal 'ab'
+          expect(@orc.currentStack).to.be.null
 
-    it 'can nest non-async', ->
-      log = ''
-      a = -> log += 'a'
-      b = -> orc.sequence (-> log += 'b'), (-> log += 'b')
-      c = -> log += 'c'
+        context 'when the user defined callback throws an error', ->
+          it 'should call handleError on the original context', ->
+            sinon.stub @context, 'handleError'
 
-      orc.sequence a, b, c
-          
-      expect(log).to.equal 'abbc'
+            anError = new Error()
+            @userCallback.throws anError
 
-    it 'can nest async', ->
-      inner_context = null
+            callback = @orc.waitFor @userCallback
+            callback()
 
-      log = ''
-      a = -> log += 'a'; orc.waitFor()
-      b = -> inner_context = orc.sequence (->
-        log += 'b'; orc.waitFor()
-      ), (->
-        log += 'b'
-      )
-      c = -> log += 'c'
+            expect(@context.handleError).to.have.been.calledWith(
+              anError,
+              @context
+            )
 
-      context = orc.sequence a, b, c
-      expect(log).to.equal 'a'
-          
-      context.done()
-      expect(log).to.equal 'ab'
+  describe '#errorOn', ->
+    it 'should return a callback', ->
+      callback = @orc.errorOn()
 
-      inner_context.done()
-      expect(log).to.equal 'abbc'
+      expect(callback).to.be.a 'function'
 
-    it 'properly handles a sequence that ends waiting without functions', ->
-      log = ''
+    context 'the returned callback', ->
+      it 'should throw an OrcError', ->
+        callback = @orc.errorOn()
 
-      inner_context = null
-      orc.sequence (->
-        inner_context = orc.sequence (-> log += 'a'), (-> orc.waitFor())
-      ), (->
-        log += 'b'
-      )
+        expect(callback).to.throw OrcError
 
-      expect(log).to.equal 'a'
+  describe '#canExecute', ->
+    context 'when empty', ->
+      it 'should return false when there is nothing', ->
+        @orc.stacks = []
 
-      inner_context.done()
-      expect(log).to.equal 'ab'
+        expect(@orc.canExecute()).to.be.false
+
+    context 'when not empty', ->
+      beforeEach ->
+        @context = {waiting: (-> false)}
+        @stack = {isEmpty: (-> true), last: (=> @context)}
+
+        @orc.stacks = [@stack]
+
+      it 'should return false when there is nothing to execute', ->
+        expect(@orc.canExecute()).to.be.false
+
+      it 'should return false when all contexts are waiting', ->
+        sinon.stub(@stack, 'isEmpty').returns false
+        sinon.stub(@context, 'waiting').returns true
+
+        expect(@orc.canExecute()).to.be.false
+
+      it 'should return true when there is a context not waiting', ->
+        sinon.stub(@stack, 'isEmpty').returns false
+        sinon.stub(@context, 'waiting').returns false
+
+        expect(@orc.canExecute()).to.be.true
+
+  describe '#executeNext', ->
+    beforeEach ->
+      @context = {waiting: (->), canExecute: (->), executeNext: (->)}
+      @orc.currentStack = [@context]
+
+    it 'should call executeNext on the current context', ->
+      sinon.stub(@context, 'waiting').returns false
+      sinon.stub(@context, 'canExecute').returns true
+
+      sinon.stub @context, 'executeNext'
+      @orc.executeNext()
+
+      expect(@context.executeNext).to.have.been.called
+
+    context 'when there is more to execute', ->
+      context 'and waiting', ->
+        it 'should not remove the context', ->
+          sinon.stub(@context, 'waiting').returns true
+          sinon.stub(@context, 'canExecute').returns false
+
+          sinon.stub @orc.currentStack, 'pop'
+          @orc.executeNext()
+
+          expect(@orc.currentStack.pop).to.not.have.been.called
+
+      context 'and not waiting', ->
+        it 'should not remove the context', ->
+          sinon.stub(@context, 'waiting').returns false
+          sinon.stub(@context, 'canExecute').returns true
+
+          sinon.stub @orc.currentStack, 'pop'
+          @orc.executeNext()
+
+          expect(@orc.currentStack.pop).to.not.have.been.called
+
+    context 'when there is nothing more to execute', ->
+      it 'should remove the context', ->
+        sinon.stub(@context, 'waiting').returns false
+        sinon.stub(@context, 'canExecute').returns false
+
+        sinon.stub @orc.currentStack, 'pop'
+        @orc.executeNext()
+
+        expect(@orc.currentStack.pop).to.have.been.called
+
+  describe '#execute', ->
+    context 'when there is more to execute', ->
+      beforeEach ->
+        canExecute = false
+        sinon.stub @orc, 'canExecute', -> canExecute = !canExecute
+
+      it 'should call executeNext', ->
+        @orc.stacks = [{isEmpty: -> true}]
+        sinon.stub @orc, 'executeNext'
+
+        @orc.execute()
+
+        expect(@orc.executeNext).to.have.been.called
+
+      context 'when empty', ->
+        it 'should remove the stack', ->
+          @orc.stacks = [{isEmpty: -> true}]
+          sinon.stub @orc, 'executeNext'
+          sinon.stub @orc.stacks, 'remove'
+
+          @orc.execute()
+
+          expect(@orc.stacks.remove).to.have.been.called
+
+    context 'when there is nothing more to execute', ->
+      beforeEach ->
+        sinon.stub(@orc, 'canExecute').returns false
+
+      it 'should not call executeNext', ->
+        sinon.stub @orc, 'executeNext'
+
+        @orc.execute()
+
+        expect(@orc.executeNext).to.not.have.been.called
+
+      it 'should not remove anything', ->
+        sinon.stub @orc.stacks, 'remove'
+
+        @orc.execute()
+
+        expect(@orc.stacks.remove).to.not.have.been.called

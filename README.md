@@ -27,9 +27,9 @@ orc = require('orc').orc
 
 ```coffeescript
 loadContent = ->
-bar = ->
+renderContent = ->
 
-orc.sequence foo, bar
+orc.sequence loadContent, renderContent
 ```
 
 **4)** Wait for some stuff
