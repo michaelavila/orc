@@ -1,11 +1,12 @@
-orclib = require 'orc'
-orc = require('orc').orc
-ExecutionContext = require('orc').ExecutionContext
-OrcError = require('orc').OrcError
+orc = require 'orc'
+
+describe 'orc', ->
+  it 'should have an instance of orc ready to use', ->
+    expect(orc.orc).to.be.an.instanceof orc.Orc
 
 describe 'ExecutionContext', ->
   beforeEach ->
-    @context = new ExecutionContext()
+    @context = new orc.ExecutionContext()
     sinon.stub @context, 'readyCallback'
 
   it 'should not be waiting initially', ->
@@ -108,7 +109,7 @@ describe 'ExecutionContext', ->
 
   describe '#fail', ->
     it 'should throw an OrcError', ->
-      expect(@context.fail).to.throw OrcError
+      expect(@context.fail).to.throw orc.OrcError
 
   describe '#handleError', ->
     it 'should call fail', ->
@@ -120,13 +121,13 @@ describe 'ExecutionContext', ->
 
 describe 'Orc', ->
   beforeEach ->
-    @orc = new orclib.Orc()
+    @orc = new orc.Orc()
 
   describe '#sequence', ->
     it 'should return an ExecutionContext', ->
       context = @orc.sequence()
 
-      expect(context).to.be.instanceof ExecutionContext
+      expect(context).to.be.instanceof orc.ExecutionContext
 
     it 'should give the functions to the context', ->
       step = ->
@@ -233,7 +234,7 @@ describe 'Orc', ->
       it 'should throw an OrcError', ->
         callback = @orc.errorOn()
 
-        expect(callback).to.throw OrcError
+        expect(callback).to.throw orc.OrcError
 
   describe '#canExecute', ->
     context 'when empty', ->
