@@ -96,6 +96,17 @@ describe 'ExecutionContext', ->
 
       expect(@step).to.have.been.called
 
+    it 'should execute functions sequentially', ->
+      step2 = sinon.stub()
+      @context.functions.push step2
+
+      @context.executeNext()
+      expect(@step).to.have.been.called
+      expect(step2).to.not.have.been.called
+
+      @context.executeNext()
+      expect(step2).to.have.been.called
+
     context 'when not waiting', ->
       it 'should not set the readyCallback', ->
         sinon.stub(@context, 'waiting').returns false
