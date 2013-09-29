@@ -29,6 +29,11 @@ describe 'ExecutionContext', ->
 
       expect(@context.waiting()).to.be.true
 
+    it 'should return the context', ->
+      context = @context.wait()
+
+      expect(context).to.equal @context
+
   describe '#done', ->
     context 'when not waiting', ->
       it 'should not do anything', ->
