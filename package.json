@@ -15,7 +15,7 @@
   },
   "engine": "node >= 0.8.21",
   "scripts": {
-    "test": "bin/test && coffeelint lib/orc.coffee test/orc.spec.coffee"
+    "test": "bin/test && coffeelint src/orc.coffee test/orc.spec.coffee"
   },
   "repository": {
       "type": "git",
