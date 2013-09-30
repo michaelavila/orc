@@ -31,12 +31,107 @@
         <h1>
 <a name="orc" class="anchor" href="#orc"><span class="octicon octicon-link"></span></a>orc</h1>
 
-<p>Orc orchestrates the execution of lists of functions. This library will help you:</p>
+<p>It is customary in computer programming to take a collection of statements that
+might be difficult to understand and place them behind a name, within a
+function, so that they may be more easily understood and reused. In a language
+like JavaScript if any of these statements are separated by an event then
+putting the statements all in one function is very difficult. Orc makes this
+trivial.</p>
+
+<p>This problem with asynchrony in JavaScript/CoffeeScript is well-known and best
+illustrated with an example. The following programs both do the same thing: 1) 
+load some content, and then 2) render that content. The first is written
+without orc:</p>
+
+<div class="highlight highlight-coffeescript"><pre><span class="nv">loadData = </span><span class="nf">-&gt;</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">'load the data and wait'</span>
+    <span class="nv">http = </span><span class="nx">require</span> <span class="s">'http'</span>
+    <span class="nv">options =</span>
+        <span class="nv">host: </span><span class="s">'google.com'</span>
+        <span class="nv">port: </span><span class="mi">80</span>
+        <span class="nv">path: </span><span class="s">''</span>
+
+    <span class="nv">handleHTTPGet = </span><span class="nf">(response) -&gt;</span>
+        <span class="nx">response</span><span class="p">.</span><span class="nx">setEncoding</span> <span class="s">'utf8'</span>
+
+        <span class="nv">handleData = </span><span class="nf">(chunk) -&gt;</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">"data loaded </span><span class="si">#{</span><span class="nx">chunk</span><span class="si">}</span><span class="s">"</span>
+
+        <span class="nx">response</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">handleData</span>
+
+        <span class="c1"># here we wait as well</span>
+        <span class="nx">response</span><span class="p">.</span><span class="nx">on</span> <span class="s">'end'</span><span class="p">,</span> <span class="nx">renderContent</span>
+
+    <span class="c1"># here we wait</span>
+    <span class="nx">http</span><span class="p">.</span><span class="nx">get</span> <span class="nx">options</span><span class="p">,</span> <span class="nx">handleHTTPGet</span>
+
+<span class="nv">renderContent = </span><span class="nf">-&gt;</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">'now render the page'</span>
+
+
+<span class="c1"># this is where we initiate the sequence</span>
+<span class="nx">loadData</span><span class="p">()</span>
+</pre></div>
+
+<p>The overall flow here is:</p>
 
 <ol>
-<li>clearly and concisely express asynchronous flow</li>
-<li>do so without polluting your API</li>
-</ol><h2>
+<li>loadData()</li>
+<li>renderContent()</li>
+</ol><p>Understanding this flow requires reading through the program. It would be
+better if you could put loadData and renderContent next to eachother:</p>
+
+<div class="highlight highlight-coffeescript"><pre><span class="nv">orc = </span><span class="nx">require</span><span class="p">(</span><span class="s">'./src/orc'</span><span class="p">).</span><span class="nx">orc</span>
+
+<span class="nv">loadData = </span><span class="nf">-&gt;</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">'load the data and wait'</span>
+    <span class="nv">http = </span><span class="nx">require</span> <span class="s">'http'</span>
+    <span class="nv">options =</span>
+        <span class="nv">host: </span><span class="s">'google.com'</span>
+        <span class="nv">port: </span><span class="mi">80</span>
+        <span class="nv">path: </span><span class="s">''</span>
+
+    <span class="nv">handleHTTPGet = </span><span class="nf">(response) -&gt;</span>
+        <span class="nx">response</span><span class="p">.</span><span class="nx">setEncoding</span> <span class="s">'utf8'</span>
+
+        <span class="nv">handleData = </span><span class="nf">(chunk) -&gt;</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">"data loaded </span><span class="si">#{</span><span class="nx">chunk</span><span class="si">}</span><span class="s">"</span>
+
+        <span class="nx">response</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">handleData</span>
+
+        <span class="c1"># here we wait as well</span>
+        <span class="nx">response</span><span class="p">.</span><span class="nx">on</span> <span class="s">'end'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">()</span>
+
+    <span class="c1"># here we wait</span>
+    <span class="nx">http</span><span class="p">.</span><span class="nx">get</span> <span class="nx">options</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">handleHTTPGet</span><span class="p">)</span>
+
+<span class="nv">renderContent = </span><span class="nf">-&gt;</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">'now render the page'</span>
+
+
+<span class="c1"># this is where we initiate the sequence</span>
+<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">loadData</span><span class="p">,</span> <span class="nx">renderContent</span>
+</pre></div>
+
+<p>The important differences are obviously the orc.sequence and two orc.waitFor
+calls. Both of these programs have the same output:</p>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>coffee example.coffee
+load the data and <span class="nb">wait</span>
+data loaded &lt;HTML&gt;&lt;HEAD&gt;&lt;meta http-equiv<span class="o">=</span><span class="s2">"content-type"</span> <span class="nv">content</span><span class="o">=</span><span class="s2">"text/html;charset=utf-8"</span>&gt;
+&lt;TITLE&gt;301 Moved&lt;/TITLE&gt;&lt;/HEAD&gt;&lt;BODY&gt;
+&lt;H1&gt;301 Moved&lt;/H1&gt;
+The document has moved
+&lt;A <span class="nv">HREF</span><span class="o">=</span><span class="s2">"http://www.google.com/"</span>&gt;here&lt;/A&gt;.
+&lt;/BODY&gt;&lt;/HTML&gt;
+
+now render the page
+</pre></div>
+
+<p>You can see that first the content is loaded and only after that is the content
+rendered.</p>
+
+<h2>
 <a name="getting-started" class="anchor" href="#getting-started"><span class="octicon octicon-link"></span></a>Getting Started</h2>
 
 <p><strong>1)</strong> Get orc from npm or bower</p>
@@ -104,63 +199,6 @@ bower install orc
 </pre></div>
 
 <p>That's it.</p>
-
-<h2>
-<a name="working-example" class="anchor" href="#working-example"><span class="octicon octicon-link"></span></a>Working Example</h2>
-
-<p>The following example is typical: make an HTTP request for some content and
-render that content in some way once we receive it. Here we tell orc to
-sequence the two functions loadData and renderPage. In the loadData function we
-tell orc to waitFor a response and then to wait for the data to finish loading.
-The renderPage function just logs "now render the page" to the console.</p>
-
-<div class="highlight highlight-coffeescript"><pre><span class="nv">orc = </span><span class="nx">require</span><span class="p">(</span><span class="s">'./lib/orc'</span><span class="p">).</span><span class="nx">orc</span>
-
-<span class="nv">loadData = </span><span class="nf">-&gt;</span>
-    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">'load the data and wait'</span>
-    <span class="nv">http = </span><span class="nx">require</span> <span class="s">'http'</span>
-    <span class="nv">options =</span>
-        <span class="nv">host: </span><span class="s">'google.com'</span>
-        <span class="nv">port: </span><span class="mi">80</span>
-        <span class="nv">path: </span><span class="s">''</span>
-
-    <span class="nv">handleHTTPGet = </span><span class="nf">(response) -&gt;</span>
-        <span class="nx">response</span><span class="p">.</span><span class="nx">setEncoding</span> <span class="s">'utf8'</span>
-
-        <span class="nv">handleData = </span><span class="nf">(chunk) -&gt;</span>
-            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">"data loaded </span><span class="si">#{</span><span class="nx">chunk</span><span class="si">}</span><span class="s">"</span>
-
-        <span class="nx">response</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">handleData</span>
-
-        <span class="c1"># here we wait as well</span>
-        <span class="nx">response</span><span class="p">.</span><span class="nx">on</span> <span class="s">'end'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">()</span>
-
-    <span class="c1"># here we wait</span>
-    <span class="nx">http</span><span class="p">.</span><span class="nx">get</span> <span class="nx">options</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">handleHTTPGet</span><span class="p">)</span>
-
-<span class="nv">renderPage = </span><span class="nf">-&gt;</span>
-    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">'now render the page'</span>
-
-
-<span class="c1"># this is where we initiate the sequence</span>
-<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">loadData</span><span class="p">,</span> <span class="nx">renderPage</span>
-</pre></div>
-
-<p>If you run the example you will see that everything is called in the correct
-order. The renderPage function does not run until we have received all of the
-data from the loadData function. I've listed the output below:</p>
-
-<div class="highlight highlight-bash"><pre><span class="nv">$ </span>coffee example.coffee
-load the data and <span class="nb">wait</span>
-data loaded &lt;HTML&gt;&lt;HEAD&gt;&lt;meta http-equiv<span class="o">=</span><span class="s2">"content-type"</span> <span class="nv">content</span><span class="o">=</span><span class="s2">"text/html;charset=utf-8"</span>&gt;
-&lt;TITLE&gt;301 Moved&lt;/TITLE&gt;&lt;/HEAD&gt;&lt;BODY&gt;
-&lt;H1&gt;301 Moved&lt;/H1&gt;
-The document has moved
-&lt;A <span class="nv">HREF</span><span class="o">=</span><span class="s2">"http://www.google.com/"</span>&gt;here&lt;/A&gt;.
-&lt;/BODY&gt;&lt;/HTML&gt;
-
-now render the page
-</pre></div>
 
 <h2>
 <a name="how-does-it-work" class="anchor" href="#how-does-it-work"><span class="octicon octicon-link"></span></a>How does it work?</h2>
