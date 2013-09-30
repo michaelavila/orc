@@ -1,7 +1,7 @@
 {
   "name": "orc",
-  "version": "0.0.14",
-  "main": "lib/orc.coffee",
+  "version": "0.0.15",
+  "main": "src/orc.coffee",
   "ignore": [
     "**/.*",
     "node_modules",
