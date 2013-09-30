@@ -240,17 +240,15 @@ describe 'Orc', ->
               @context
             )
 
+  describe '#fail', ->
+    it 'should throw an OrcError', ->
+      expect(@orc.fail).to.throw orc.OrcError
+
   describe '#errorOn', ->
-    it 'should return a callback', ->
+    it 'should return fail', ->
       callback = @orc.errorOn()
 
-      expect(callback).to.be.a 'function'
-
-    context 'the returned callback', ->
-      it 'should throw an OrcError', ->
-        callback = @orc.errorOn()
-
-        expect(callback).to.throw orc.OrcError
+      expect(callback).to.equal @orc.fail
 
   describe '#canExecute', ->
     context 'when empty', ->
