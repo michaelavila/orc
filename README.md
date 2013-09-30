@@ -86,7 +86,8 @@ renderContent = ->
 orc.sequence loadData, renderContent
 ```
 
-Both of these programs have the same output:
+The important differences are obviously the orc.sequence and two orc.waitFor
+calls. Both of these programs have the same output:
 
 ```bash
 $ coffee example.coffee
@@ -100,6 +101,9 @@ The document has moved
 
 now render the page
 ```
+
+You can see that first the content is loaded and only after that is the content
+rendered.
 
 ## Getting Started
 
