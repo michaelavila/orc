@@ -13,8 +13,6 @@ load some content, and then 2) render that content. The first is written
 without orc:
 
 ```coffeescript
-orc = require('./src/orc').orc
-
 loadData = ->
     console.log 'load the data and wait'
     http = require 'http'
