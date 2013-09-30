@@ -6,15 +6,13 @@ exports.Orc = class Orc
     @currentStack = null
 
   sequence: (functions...) ->
-    # take note of whether or not orc is currently executing anything
-    currentlyExecuting = @currentStack?
     # each sequence needs an execution context so that orc can keep the
     # information about each sequence isolated from the rest
     context = new ExecutionContext functions
     # orc either adds this context to the current stack or creates a new
     # stack, @currentStack is only set when orc is already in the process
     # of executing a sequence
-    if currentlyExecuting
+    if @currentStack?
       @currentStack.push context
     else
       @stacks.push [context]
