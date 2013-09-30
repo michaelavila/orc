@@ -1,9 +1,105 @@
 # orc
 
-Orc orchestrates the execution of lists of functions. This library will help you:
+It is customary in computer programming to take a collection of statements that
+might be difficult to understand and place them behind a name, within a
+function, so that they may be more easily understood and reused. In a language
+like JavaScript if any of these statements are separated by an event then
+putting the statements all in one function is very difficult. Orc makes this
+trivial.
 
-1. clearly and concisely express asynchronous flow
-2. do so without polluting your API
+This problem with asynchrony in JavaScript/CoffeeScript is well-known and best
+illustrated with an example. The following programs both do the same thing: 1) 
+load some content, and then 2) render that content. The first is written
+without orc:
+
+```coffeescript
+orc = require('./src/orc').orc
+
+loadData = ->
+    console.log 'load the data and wait'
+    http = require 'http'
+    options =
+        host: 'google.com'
+        port: 80
+        path: ''
+
+    handleHTTPGet = (response) ->
+        response.setEncoding 'utf8'
+
+        handleData = (chunk) ->
+            console.log "data loaded #{chunk}"
+
+        response.on 'data', handleData
+
+        # here we wait as well
+        response.on 'end', renderContent
+
+    # here we wait
+    http.get options, handleHTTPGet
+
+renderContent = ->
+    console.log 'now render the page'
+
+
+# this is where we initiate the sequence
+loadData()
+```
+
+The overall flow here is:
+
+1. loadData()
+2. renderContent()
+
+Understanding this flow requires reading through the program. It would be
+better if you could put loadData and renderContent next to eachother:
+
+```coffeescript
+orc = require('./src/orc').orc
+
+loadData = ->
+    console.log 'load the data and wait'
+    http = require 'http'
+    options =
+        host: 'google.com'
+        port: 80
+        path: ''
+
+    handleHTTPGet = (response) ->
+        response.setEncoding 'utf8'
+
+        handleData = (chunk) ->
+            console.log "data loaded #{chunk}"
+
+        response.on 'data', handleData
+
+        # here we wait as well
+        response.on 'end', orc.waitFor()
+
+    # here we wait
+    http.get options, orc.waitFor(handleHTTPGet)
+
+renderContent = ->
+    console.log 'now render the page'
+
+
+# this is where we initiate the sequence
+orc.sequence loadData, renderContent
+```
+
+Both of these programs have the same output:
+
+```bash
+$ coffee example.coffee
+load the data and wait
+data loaded <HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">
+<TITLE>301 Moved</TITLE></HEAD><BODY>
+<H1>301 Moved</H1>
+The document has moved
+<A HREF="http://www.google.com/">here</A>.
+</BODY></HTML>
+
+now render the page
+```
 
 ## Getting Started
 
@@ -79,64 +175,6 @@ context.handleError = (error, context) -> console.log "#{error} for #{context}"
 ```
 
 That's it.
-
-## Working Example
-
-The following example is typical: make an HTTP request for some content and
-render that content in some way once we receive it. Here we tell orc to
-sequence the two functions loadData and renderPage. In the loadData function we
-tell orc to waitFor a response and then to wait for the data to finish loading.
-The renderPage function just logs "now render the page" to the console.
-
-```coffeescript
-orc = require('./lib/orc').orc
-
-loadData = ->
-    console.log 'load the data and wait'
-    http = require 'http'
-    options =
-        host: 'google.com'
-        port: 80
-        path: ''
-
-    handleHTTPGet = (response) ->
-        response.setEncoding 'utf8'
-
-        handleData = (chunk) ->
-            console.log "data loaded #{chunk}"
-
-        response.on 'data', handleData
-
-        # here we wait as well
-        response.on 'end', orc.waitFor()
-
-    # here we wait
-    http.get options, orc.waitFor(handleHTTPGet)
-
-renderPage = ->
-    console.log 'now render the page'
-
-
-# this is where we initiate the sequence
-orc.sequence loadData, renderPage
-```
-
-If you run the example you will see that everything is called in the correct
-order. The renderPage function does not run until we have received all of the
-data from the loadData function. I've listed the output below:
-
-```bash
-$ coffee example.coffee
-load the data and wait
-data loaded <HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">
-<TITLE>301 Moved</TITLE></HEAD><BODY>
-<H1>301 Moved</H1>
-The document has moved
-<A HREF="http://www.google.com/">here</A>.
-</BODY></HTML>
-
-now render the page
-```
 
 ## How does it work?
 
