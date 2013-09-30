@@ -41,29 +41,32 @@
 
 <p><strong>1)</strong> Get orc from npm or bower</p>
 
-<div class="highlight"><pre><span class="c"># if you're using with node install with npm</span>
+<div class="highlight highlight-bash"><pre><span class="c"># if you're using with node install with npm</span>
 npm install orc
 
 <span class="c"># if you're using in the browser install with bower</span>
 bower install orc
 </pre></div>
 
-<p><strong>2)</strong> Require orc</p>
+<p><strong>2)</strong> Require or script tag orc</p>
 
-<div class="highlight"><pre><span class="nv">orc = </span><span class="nx">require</span><span class="p">(</span><span class="s">'orc'</span><span class="p">).</span><span class="nx">orc</span>
+<div class="highlight highlight-coffeescript"><pre><span class="nv">orc = </span><span class="nx">require</span><span class="p">(</span><span class="s">'orc'</span><span class="p">).</span><span class="nx">orc</span>
+</pre></div>
+
+<div class="highlight highlight-html"><pre><span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"orc.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
 </pre></div>
 
 <p><strong>3)</strong> Sequence some functions</p>
 
-<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
-<span class="nv">bar = </span><span class="nf">-&gt;</span>
+<div class="highlight highlight-coffeescript"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
+<span class="nv">renderContent = </span><span class="nf">-&gt;</span>
 
-<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">foo</span><span class="p">,</span> <span class="nx">bar</span>
+<span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nx">loadContent</span><span class="p">,</span> <span class="nx">renderContent</span>
 </pre></div>
 
 <p><strong>4)</strong> Wait for some stuff</p>
 
-<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
+<div class="highlight highlight-coffeescript"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
   <span class="nv">request = </span><span class="nx">loader</span><span class="p">.</span><span class="nx">get</span> <span class="nx">someDataUrl</span>
   <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">parseData</span><span class="p">)</span>
 
@@ -75,7 +78,7 @@ bower install orc
 
 <p><strong>5)</strong> Tell orc how to error</p>
 
-<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
+<div class="highlight highlight-coffeescript"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
   <span class="nv">request = </span><span class="nx">loader</span><span class="p">.</span><span class="nx">get</span> <span class="nx">someDataUrl</span>
   <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">parseData</span><span class="p">)</span>
   <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'error'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">errorOn</span><span class="p">()</span>
@@ -88,7 +91,7 @@ bower install orc
 
 <p><strong>6)</strong> Handle sequence error instead of erroring</p>
 
-<div class="highlight"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
+<div class="highlight highlight-coffeescript"><pre><span class="nv">loadContent = </span><span class="nf">-&gt;</span>
   <span class="nv">request = </span><span class="nx">loader</span><span class="p">.</span><span class="nx">get</span> <span class="nx">someDataUrl</span>
   <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">waitFor</span><span class="p">(</span><span class="nx">parseData</span><span class="p">)</span>
   <span class="nx">request</span><span class="p">.</span><span class="nx">on</span> <span class="s">'error'</span><span class="p">,</span> <span class="nx">orc</span><span class="p">.</span><span class="nx">errorOn</span><span class="p">()</span>
@@ -111,7 +114,7 @@ sequence the two functions loadData and renderPage. In the loadData function we
 tell orc to waitFor a response and then to wait for the data to finish loading.
 The renderPage function just logs "now render the page" to the console.</p>
 
-<div class="highlight"><pre><span class="nv">orc = </span><span class="nx">require</span><span class="p">(</span><span class="s">'./lib/orc'</span><span class="p">).</span><span class="nx">orc</span>
+<div class="highlight highlight-coffeescript"><pre><span class="nv">orc = </span><span class="nx">require</span><span class="p">(</span><span class="s">'./lib/orc'</span><span class="p">).</span><span class="nx">orc</span>
 
 <span class="nv">loadData = </span><span class="nf">-&gt;</span>
     <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">'load the data and wait'</span>
@@ -147,7 +150,7 @@ The renderPage function just logs "now render the page" to the console.</p>
 order. The renderPage function does not run until we have received all of the
 data from the loadData function. I've listed the output below:</p>
 
-<div class="highlight"><pre><span class="nv">$ </span>coffee example.coffee
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>coffee example.coffee
 load the data and <span class="nb">wait</span>
 data loaded &lt;HTML&gt;&lt;HEAD&gt;&lt;meta http-equiv<span class="o">=</span><span class="s2">"content-type"</span> <span class="nv">content</span><span class="o">=</span><span class="s2">"text/html;charset=utf-8"</span>&gt;
 &lt;TITLE&gt;301 Moved&lt;/TITLE&gt;&lt;/HEAD&gt;&lt;BODY&gt;
@@ -179,13 +182,13 @@ anything. At this point orc will begin executing, if it's not already.</p>
 when it requires another sequence to complete before it completes. Dependent
 sequences are called inside of other sequences kinda like this:</p>
 
-<div class="highlight"><pre><span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nf">-&gt;</span>
+<div class="highlight highlight-coffeescript"><pre><span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="nf">-&gt;</span>
   <span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="p">...</span>
 </pre></div>
 
 <p>Independent sequences on the other hand look kinda like this:</p>
 
-<div class="highlight"><pre><span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="p">...</span>
+<div class="highlight highlight-coffeescript"><pre><span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="p">...</span>
 <span class="nx">orc</span><span class="p">.</span><span class="nx">sequence</span> <span class="p">...</span>
 </pre></div>
 
