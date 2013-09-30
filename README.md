@@ -17,10 +17,14 @@ npm install orc
 bower install orc
 ```
 
-**2)** Require orc
+**2)** Require or script tag orc
 
 ```coffeescript
 orc = require('orc').orc
+```
+
+```html
+<script src="orc.js"></script>
 ```
 
 **3)** Sequence some functions
