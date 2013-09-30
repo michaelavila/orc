@@ -65,8 +65,7 @@ exports.Orc = class Orc
     false
 
 exports.ExecutionContext = class ExecutionContext
-  constructor: (functions=[]) ->
-    @functions = functions
+  constructor: (@functions=[]) ->
     @holds = 0
 
   waiting: ->
