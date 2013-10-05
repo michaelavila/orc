@@ -1,6 +1,6 @@
 {
   "name": "orc",
-  "version": "0.0.15",
+  "version": "0.0.17",
   "main": "src/orc.coffee",
   "ignore": [
     "**/.*",
