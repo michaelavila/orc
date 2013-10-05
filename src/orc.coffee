@@ -40,11 +40,14 @@ exports.Orc = class Orc
       # of the decorator function
       context.done()
 
+  errorOn: (callback) =>
+    =>
+      if callback?
+        callback arguments...
+      @fail()
+
   fail: ->
     throw new OrcError()
-
-  errorOn: =>
-    @fail
 
   execute: =>
     while @canExecute()

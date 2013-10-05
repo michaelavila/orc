@@ -240,15 +240,40 @@ describe 'Orc', ->
               @context
             )
 
+  describe '#errorOn', ->
+    it 'should return a callback', ->
+      callback = @orc.errorOn()
+
+      expect(callback).to.be.a 'function'
+
+    context 'with the returned callback', ->
+      beforeEach ->
+        sinon.stub @orc, 'fail'
+
+      it 'should call fail', ->
+        callback = @orc.errorOn()
+        callback()
+
+        expect(@orc.fail).to.have.been.called
+
+      context 'with a user defined callback', ->
+        beforeEach ->
+          @userDefinedCallback = sinon.stub()
+          @callback = @orc.errorOn @userDefinedCallback
+
+        it 'should call the user defined callback before failing', ->
+          @callback()
+
+          expect(@userDefinedCallback).to.have.been.called
+
+        it 'should pass all arguments to the user defined callback', ->
+          @callback 'foo', 'bar'
+
+          expect(@userDefinedCallback).to.have.been.calledWith 'foo', 'bar'
+
   describe '#fail', ->
     it 'should throw an OrcError', ->
       expect(@orc.fail).to.throw orc.OrcError
-
-  describe '#errorOn', ->
-    it 'should return fail', ->
-      callback = @orc.errorOn()
-
-      expect(callback).to.equal @orc.fail
 
   describe '#canExecute', ->
     context 'when empty', ->
