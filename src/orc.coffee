@@ -85,18 +85,18 @@ exports.ExecutionContext = class ExecutionContext
   done: ->
     return unless @waiting()
     @holds--
-    @readyCallback() unless @waiting()
+    @handleReady() unless @waiting()
 
   canExecute: ->
     not @functions.isEmpty()
 
-  executeNext: (readyCallback) ->
+  executeNext: (handleReady) ->
     @functions.shift()()
-    @readyCallback = readyCallback if @waiting()
+    @handleReady = handleReady if @waiting()
 
   handleError: ->
 
-  readyCallback: ->
+  handleReady: ->
 
 class OrcError extends Error
 

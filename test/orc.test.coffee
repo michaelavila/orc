@@ -7,7 +7,7 @@ describe 'orc', ->
 describe 'ExecutionContext', ->
   beforeEach ->
     @context = new orc.ExecutionContext()
-    sinon.stub @context, 'readyCallback'
+    sinon.stub @context, 'handleReady'
 
   it 'should not be waiting initially', ->
     expect(@context.waiting()).to.be.false
@@ -41,10 +41,10 @@ describe 'ExecutionContext', ->
 
         expect(@context.waiting()).to.be.false
 
-      it 'should not call readyCallback', ->
+      it 'should not call handleReady', ->
         @context.done()
 
-        expect(@context.readyCallback).to.not.have.been.called
+        expect(@context.handleReady).to.not.have.been.called
 
     context 'when waiting', ->
       beforeEach ->
@@ -55,10 +55,10 @@ describe 'ExecutionContext', ->
 
         expect(@context.waiting()).to.be.false
 
-      it 'should call readyCallback', ->
+      it 'should call handleReady', ->
         @context.done()
 
-        expect(@context.readyCallback).to.have.been.called
+        expect(@context.handleReady).to.have.been.called
 
       context 'for many things', ->
         beforeEach ->
@@ -71,9 +71,9 @@ describe 'ExecutionContext', ->
           @context.done()
           expect(@context.waiting()).to.be.false
 
-        it 'should not call readyCallback', ->
+        it 'should not call handleReady', ->
           @context.done()
-          expect(@context.readyCallback).to.not.have.been.called
+          expect(@context.handleReady).to.not.have.been.called
 
   describe '#canExecute', ->
     it 'should be false when empty', ->
@@ -108,20 +108,20 @@ describe 'ExecutionContext', ->
       expect(step2).to.have.been.called
 
     context 'when not waiting', ->
-      it 'should not set the readyCallback', ->
+      it 'should not set the handleReady', ->
         sinon.stub(@context, 'waiting').returns false
 
         @context.executeNext @step
 
-        expect(@context.readyCallback).to.not.equal @step
+        expect(@context.handleReady).to.not.equal @step
 
     context 'when waiting', ->
-      it 'should set the readyCallback', ->
+      it 'should set the handleReady', ->
         sinon.stub(@context, 'waiting').returns true
 
         @context.executeNext @step
 
-        expect(@context.readyCallback).to.equal @step
+        expect(@context.handleReady).to.equal @step
 
   describe '#handleError', ->
     it 'should exist', ->
