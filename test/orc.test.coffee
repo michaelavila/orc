@@ -123,17 +123,9 @@ describe 'ExecutionContext', ->
 
         expect(@context.readyCallback).to.equal @step
 
-  describe '#fail', ->
-    it 'should throw an OrcError', ->
-      expect(@context.fail).to.throw orc.OrcError
-
   describe '#handleError', ->
-    it 'should call fail', ->
-      sinon.stub @context, 'fail'
-
-      @context.handleError()
-
-      expect(@context.fail).to.have.been.called
+    it 'should exist', ->
+      expect(@context.handleError).to.exist
 
 describe 'Orc', ->
   beforeEach ->

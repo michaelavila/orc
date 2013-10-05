@@ -9,6 +9,8 @@ exports.Orc = class Orc
     # each sequence needs an execution context so that orc can keep the
     # information about each sequence isolated from the rest
     context = new ExecutionContext functions
+    # set the default error handling strategy to @fail()
+    context.handleError = @fail
     # orc either adds this context to the current stack or creates a new
     # stack, @currentStack is only set when orc is already in the process
     # of executing a sequence
@@ -93,10 +95,6 @@ exports.ExecutionContext = class ExecutionContext
     @readyCallback = readyCallback if @waiting()
 
   handleError: ->
-    @fail()
-
-  fail: ->
-    throw new OrcError()
 
   readyCallback: ->
 
