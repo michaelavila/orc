@@ -1,6 +1,4 @@
-exports = exports ? @
-
-exports.Orc = class Orc
+class Orc
   constructor: ->
     @stacks = []
     @currentStack = null
@@ -71,7 +69,7 @@ exports.Orc = class Orc
       return true unless contextStack.isEmpty() or contextStack.last().waiting()
     false
 
-exports.ExecutionContext = class ExecutionContext
+class ExecutionContext
   constructor: (@functions=[]) ->
     @holds = 0
 
@@ -106,4 +104,7 @@ Array::isEmpty = ->
 Array::last = ->
   @[@length-1]
 
+exports = exports ? @
+exports.Orc = Orc
+exports.ExecutionContext = ExecutionContext
 exports.orc = new Orc
