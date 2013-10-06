@@ -359,11 +359,11 @@ describe 'Orc', ->
         it 'should remove the stack', ->
           @orc.stacks = [{isEmpty: -> true}]
           sinon.stub @orc, 'executeNext'
-          sinon.stub @orc.stacks, 'remove'
+          sinon.stub @orc.stacks, 'splice'
 
           @orc.execute()
 
-          expect(@orc.stacks.remove).to.have.been.called
+          expect(@orc.stacks.splice).to.have.been.calledWith 0, 1
 
     context 'when there is nothing more to execute', ->
       beforeEach ->
@@ -377,8 +377,8 @@ describe 'Orc', ->
         expect(@orc.executeNext).to.not.have.been.called
 
       it 'should not remove anything', ->
-        sinon.stub @orc.stacks, 'remove'
+        sinon.stub @orc.stacks, 'splice'
 
         @orc.execute()
 
-        expect(@orc.stacks.remove).to.not.have.been.called
+        expect(@orc.stacks.splice).to.not.have.been.called

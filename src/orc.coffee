@@ -53,10 +53,10 @@ exports.Orc = class Orc
 
   execute: =>
     while @canExecute()
-      for @currentStack in @stacks
+      for @currentStack, index in @stacks
         @executeNext()
         if @currentStack.isEmpty()
-          @stacks.remove @currentStack
+          @stacks.splice index, 1
           break
 
     @currentStack = null
@@ -100,20 +100,10 @@ exports.ExecutionContext = class ExecutionContext
 
 class OrcError extends Error
 
-# indexOf polyfill
-unless Array::indexOf
-  Array::indexOf = (item) ->
-    for prop, i in @
-      return i if item is prop
-    return -1
-
 Array::isEmpty = ->
   @length == 0
 
 Array::last = ->
   @[@length-1]
-
-Array::remove = (object) ->
-  @splice @indexOf(object), 1
 
 exports.orc = new Orc
