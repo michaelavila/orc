@@ -21,5 +21,5 @@
       "type": "git",
       "url": "https://github.com/michaelavila/orc.git"
   },
-  "main": "./lib/orc"
+  "main": "./src/orc"
 }
