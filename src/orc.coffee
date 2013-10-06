@@ -41,10 +41,11 @@ class Orc
       context.done()
 
   errorOn: (callback) =>
+    context = @currentStack.last()
     =>
       if callback?
         callback arguments...
-      @fail()
+      context.handleError arguments...
 
   fail: ->
     throw new OrcError()

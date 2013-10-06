@@ -233,6 +233,10 @@ describe 'Orc', ->
             )
 
   describe '#errorOn', ->
+    beforeEach ->
+      @context = sinon.stub new orc.ExecutionContext
+      @orc.currentStack = [@context]
+
     it 'should return a callback', ->
       callback = @orc.errorOn()
 
@@ -242,11 +246,17 @@ describe 'Orc', ->
       beforeEach ->
         sinon.stub @orc, 'fail'
 
-      it 'should call fail', ->
+      it 'should call handleError on the correct context', ->
         callback = @orc.errorOn()
         callback()
 
-        expect(@orc.fail).to.have.been.called
+        expect(@context.handleError).to.have.been.called
+
+      it 'should pass along arguments to handleError', ->
+        callback = @orc.errorOn()
+        callback 'foo', 'bar'
+
+        expect(@context.handleError).to.have.been.calledWith 'foo', 'bar'
 
       context 'with a user defined callback', ->
         beforeEach ->
